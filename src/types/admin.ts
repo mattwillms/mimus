@@ -3,7 +3,7 @@ export interface HealthStatus {
   db: 'ok' | 'error'
   redis: 'ok' | 'error'
   worker: {
-    last_run_status: 'completed' | 'failed' | 'running' | 'unknown'
+    last_run_status: 'completed' | 'failed' | 'running' | 'quota_reached' | 'unknown'
     last_run_at: string | null
     records_synced: number | null
   }

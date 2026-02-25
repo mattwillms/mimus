@@ -28,6 +28,13 @@ function WorkerStatusBadge({ status }: { status: string }) {
       </Badge>
     )
   }
+  if (status === 'quota_reached') {
+    return (
+      <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">
+        Quota Reached
+      </Badge>
+    )
+  }
   if (status === 'failed') {
     return <Badge variant="destructive">Failed</Badge>
   }
