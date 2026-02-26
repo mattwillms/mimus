@@ -4,6 +4,9 @@ import { UnauthorizedPage } from '@/pages/UnauthorizedPage'
 import { AppLayout } from '@/layouts/AppLayout'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { UsersPage } from '@/pages/UsersPage'
+import { PipelinesPage } from '@/pages/PipelinesPage'
+import { NotificationsPage } from '@/pages/NotificationsPage'
+import { WeatherPage } from '@/pages/WeatherPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { ErrorPage } from '@/pages/ErrorPage'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
@@ -33,6 +36,18 @@ export const router = createBrowserRouter([
       {
         path: 'users',
         element: <UsersPage />,
+      },
+      {
+        path: 'pipelines',
+        element: <PipelinesPage />,
+      },
+      {
+        path: 'notifications',
+        element: <NotificationsPage />,
+      },
+      {
+        path: 'weather',
+        element: <WeatherPage />,
       },
       {
         path: '*',

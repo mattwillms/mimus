@@ -3,6 +3,9 @@ import { NavLink, Outlet } from 'react-router'
 import {
   LayoutDashboard,
   Users,
+  Activity,
+  Bell,
+  Cloud,
   Menu,
   X,
   LogOut,
@@ -32,6 +35,9 @@ interface NavItem {
 const navItems: NavItem[] = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard', end: true },
   { to: '/users', icon: Users, label: 'Users' },
+  { to: '/pipelines', icon: Activity, label: 'Pipelines' },
+  { to: '/notifications', icon: Bell, label: 'Notifications' },
+  { to: '/weather', icon: Cloud, label: 'Weather' },
 ]
 
 function getInitials(name: string): string {
