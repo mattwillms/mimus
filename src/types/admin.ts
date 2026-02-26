@@ -15,10 +15,39 @@ export interface AdminUser {
   email: string
   role: string
   is_active: boolean
+  timezone: string | null
+  zip_code: string | null
+  hardiness_zone: string | null
+  latitude: number | null
+  longitude: number | null
   created_at: string
   last_login: string | null
-  hardiness_zone: string | null
-  zip_code: string | null
+}
+
+export interface AdminUserCreate {
+  name: string
+  email: string
+  password: string
+  role: string
+  is_active: boolean
+  timezone?: string
+  zip_code?: string
+  hardiness_zone?: string
+  latitude?: number
+  longitude?: number
+}
+
+export interface AdminUserUpdate {
+  name?: string
+  email?: string
+  password?: string
+  role?: string
+  is_active?: boolean
+  timezone?: string
+  zip_code?: string
+  hardiness_zone?: string
+  latitude?: number
+  longitude?: number
 }
 
 export interface AdminUserListResponse {

@@ -1,7 +1,10 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/api/client'
 import type {
+  AdminUser,
+  AdminUserCreate,
   AdminUserListResponse,
+  AdminUserUpdate,
   HealthStatus,
   NotificationLogResponse,
   PipelineRunListResponse,
@@ -28,6 +31,32 @@ export function useAdminUsers(page: number, perPage: number) {
       })
       return data
     },
+  })
+}
+
+export function useCreateAdminUser() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: AdminUserCreate) =>
+      apiClient.post<AdminUser>('/admin/users', data).then((r) => r.data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'users'] }),
+  })
+}
+
+export function useUpdateAdminUser(id: number) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: AdminUserUpdate) =>
+      apiClient.patch<AdminUser>(`/admin/users/${id}`, data).then((r) => r.data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'users'] }),
+  })
+}
+
+export function useDeleteAdminUser() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => apiClient.delete(`/admin/users/${id}`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'users'] }),
   })
 }
 
