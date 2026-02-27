@@ -1,20 +1,14 @@
 import sharp from 'sharp'
-import { readFileSync } from 'fs'
-import { fileURLToPath } from 'url'
-import { dirname, join } from 'path'
+import toIco from 'to-ico'
+import { readFileSync, writeFileSync } from 'fs'
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
-const svgPath = join(__dirname, '../public/icon.svg')
-const svg = readFileSync(svgPath)
+const svg = readFileSync('./public/icon.svg')
+await sharp(Buffer.from(svg)).resize(192, 192).png().toFile('./public/pwa-192x192.png')
+await sharp(Buffer.from(svg)).resize(512, 512).png().toFile('./public/pwa-512x512.png')
+await sharp(Buffer.from(svg)).resize(180, 180).png().toFile('./public/apple-touch-icon.png')
 
-const icons = [
-  { file: 'pwa-512x512.png', size: 512 },
-  { file: 'pwa-192x192.png', size: 192 },
-  { file: 'apple-touch-icon.png', size: 180 },
-]
+const png192 = readFileSync('./public/pwa-192x192.png')
+const ico = await toIco([png192])
+writeFileSync('./public/favicon.ico', ico)
 
-for (const { file, size } of icons) {
-  const out = join(__dirname, '../public', file)
-  await sharp(svg).resize(size, size).png().toFile(out)
-  console.log(`Generated ${file} (${size}x${size})`)
-}
+console.log('Icons generated.')
