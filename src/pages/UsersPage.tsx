@@ -26,7 +26,8 @@ import type { AdminUser } from '@/types/admin'
 // ── Create dialog form state ──────────────────────────────────────────────────
 
 interface CreateForm {
-  name: string
+  first_name: string
+  last_name: string
   email: string
   password: string
   role: string
@@ -34,13 +35,14 @@ interface CreateForm {
 }
 
 function emptyCreate(): CreateForm {
-  return { name: '', email: '', password: '', role: 'user', is_active: true }
+  return { first_name: '', last_name: '', email: '', password: '', role: 'user', is_active: true }
 }
 
 // ── Edit dialog form state ────────────────────────────────────────────────────
 
 interface EditForm {
-  name: string
+  first_name: string
+  last_name: string
   email: string
   password: string
   role: string
@@ -54,7 +56,8 @@ interface EditForm {
 
 function userToEditForm(u: AdminUser): EditForm {
   return {
-    name: u.name,
+    first_name: u.first_name,
+    last_name: u.last_name ?? '',
     email: u.email,
     password: '',
     role: u.role,
@@ -65,6 +68,10 @@ function userToEditForm(u: AdminUser): EditForm {
     latitude: u.latitude !== null ? String(u.latitude) : '',
     longitude: u.longitude !== null ? String(u.longitude) : '',
   }
+}
+
+function displayName(u: AdminUser): string {
+  return u.last_name ? `${u.first_name} ${u.last_name}` : u.first_name
 }
 
 // ── Page ─────────────────────────────────────────────────────────────────────
@@ -103,7 +110,8 @@ export function UsersPage() {
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
     await createUser.mutateAsync({
-      name: createForm.name.trim(),
+      first_name: createForm.first_name.trim(),
+      last_name: createForm.last_name.trim() || undefined,
       email: createForm.email.trim(),
       password: createForm.password,
       role: createForm.role,
@@ -117,7 +125,8 @@ export function UsersPage() {
     e.preventDefault()
     if (!editUser || !editForm) return
     const payload: Record<string, unknown> = {
-      name: editForm.name.trim() || undefined,
+      first_name: editForm.first_name.trim() || undefined,
+      last_name: editForm.last_name.trim() || undefined,
       email: editForm.email.trim() || undefined,
       role: editForm.role,
       is_active: editForm.is_active,
@@ -139,6 +148,9 @@ export function UsersPage() {
   }
 
   const isSelf = editUser?.email === currentUser?.email
+  const editDisplayName = editUser
+    ? `${editUser.first_name ?? ''} ${editUser.last_name ?? ''}`.trim()
+    : ''
 
   return (
     <div className="mx-auto max-w-5xl space-y-4">
@@ -188,7 +200,7 @@ export function UsersPage() {
                       className="cursor-pointer hover:bg-muted/50"
                       onClick={() => openEdit(user)}
                     >
-                      <TableCell className="font-medium">{user.name}</TableCell>
+                      <TableCell className="font-medium">{displayName(user)}</TableCell>
                       <TableCell className="text-muted-foreground">{user.email}</TableCell>
                       <TableCell>
                         <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
@@ -252,14 +264,24 @@ export function UsersPage() {
             <DialogTitle>New user</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleCreate} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="c-name">Name</Label>
-              <Input
-                id="c-name"
-                value={createForm.name}
-                onChange={(e) => setCreateForm((f) => ({ ...f, name: e.target.value }))}
-                required
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="c-first-name">First name</Label>
+                <Input
+                  id="c-first-name"
+                  value={createForm.first_name}
+                  onChange={(e) => setCreateForm((f) => ({ ...f, first_name: e.target.value }))}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="c-last-name">Last name</Label>
+                <Input
+                  id="c-last-name"
+                  value={createForm.last_name}
+                  onChange={(e) => setCreateForm((f) => ({ ...f, last_name: e.target.value }))}
+                />
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="c-email">Email</Label>
@@ -327,22 +349,30 @@ export function UsersPage() {
             <form onSubmit={handleUpdate} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="e-name">Name</Label>
+                  <Label htmlFor="e-first-name">First name</Label>
                   <Input
-                    id="e-name"
-                    value={editForm.name}
-                    onChange={(e) => setEditForm((f) => f && ({ ...f, name: e.target.value }))}
+                    id="e-first-name"
+                    value={editForm.first_name}
+                    onChange={(e) => setEditForm((f) => f && ({ ...f, first_name: e.target.value }))}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="e-email">Email</Label>
+                  <Label htmlFor="e-last-name">Last name</Label>
                   <Input
-                    id="e-email"
-                    type="email"
-                    value={editForm.email}
-                    onChange={(e) => setEditForm((f) => f && ({ ...f, email: e.target.value }))}
+                    id="e-last-name"
+                    value={editForm.last_name}
+                    onChange={(e) => setEditForm((f) => f && ({ ...f, last_name: e.target.value }))}
                   />
                 </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="e-email">Email</Label>
+                <Input
+                  id="e-email"
+                  type="email"
+                  value={editForm.email}
+                  onChange={(e) => setEditForm((f) => f && ({ ...f, email: e.target.value }))}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="e-password">New password (leave blank to keep)</Label>
@@ -452,7 +482,7 @@ export function UsersPage() {
                 ) : (
                   <>
                     <span className="mr-auto text-sm text-destructive">
-                      Delete <strong>{editUser?.name}</strong>? This cannot be undone.
+                      Delete <strong>{editDisplayName}</strong>? This cannot be undone.
                     </span>
                     <Button type="button" variant="outline" onClick={() => setDeleteConfirm(false)}>
                       Cancel

@@ -11,7 +11,8 @@ export interface HealthStatus {
 
 export interface AdminUser {
   id: number
-  name: string
+  first_name: string
+  last_name: string | null
   email: string
   role: string
   is_active: boolean
@@ -25,7 +26,8 @@ export interface AdminUser {
 }
 
 export interface AdminUserCreate {
-  name: string
+  first_name: string
+  last_name?: string
   email: string
   password: string
   role: string
@@ -38,7 +40,8 @@ export interface AdminUserCreate {
 }
 
 export interface AdminUserUpdate {
-  name?: string
+  first_name?: string
+  last_name?: string
   email?: string
   password?: string
   role?: string
