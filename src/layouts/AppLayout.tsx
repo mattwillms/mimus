@@ -40,20 +40,17 @@ const navItems: NavItem[] = [
   { to: '/weather', icon: Cloud, label: 'Weather' },
 ]
 
-function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
+function getInitials(first_name: string, last_name: string | null): string {
+  const first = first_name[0] ?? ''
+  const last = last_name ? last_name[0] : ''
+  return (first + last).toUpperCase()
 }
 
 export function AppLayout() {
   const { user, logout } = useAuth()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  const initials = user ? getInitials(user.name) : '?'
+  const initials = user ? getInitials(user.first_name, user.last_name) : '?'
 
   return (
     <div className="flex h-screen bg-background">
@@ -151,7 +148,7 @@ export function AppLayout() {
                   </AvatarFallback>
                 </Avatar>
                 <span className="hidden max-w-[140px] truncate sm:block">
-                  {user?.name}
+                  {user?.first_name} {user?.last_name}
                 </span>
                 <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
               </button>
@@ -159,7 +156,7 @@ export function AppLayout() {
             <DropdownMenuContent align="end" className="w-52">
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col gap-0.5">
-                  <span className="font-medium text-foreground">{user?.name}</span>
+                  <span className="font-medium text-foreground">{user?.first_name} {user?.last_name}</span>
                   <span className="truncate text-xs text-muted-foreground">{user?.email}</span>
                 </div>
               </DropdownMenuLabel>
