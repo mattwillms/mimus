@@ -1,9 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="90" fill="#3d4f5c"/>
+  <rect width="512" height="512" rx="80" fill="#3d4f5c"/>
   <!-- Shield body -->
-  <path d="M256 420 C256 420 120 340 120 240 L120 160 L256 130 L392 160 L392 240 C392 340 256 420 256 420 Z" fill="white"/>
-  <!-- Acorn cap -->
-  <path d="M160 175 Q180 130 256 125 Q332 130 352 175 Q310 195 256 198 Q202 195 160 175 Z" fill="white"/>
+  <path d="M150 295 L150 230 Q150 210 170 205 L342 205 Q362 210 362 230 L362 295 Q362 370 256 430 Q150 370 150 295 Z" fill="white"/>
+  <!-- Acorn cap dome -->
+  <ellipse cx="256" cy="210" rx="130" ry="75" fill="white"/>
+  <!-- Cap separator line -->
+  <rect x="126" y="200" width="260" height="18" rx="4" fill="#3d4f5c"/>
   <!-- Stem -->
-  <rect x="248" y="95" width="16" height="35" rx="6" fill="white"/>
+  <path d="M256 135 Q260 120 268 115 Q272 112 270 118 Q264 128 262 138" stroke="white" stroke-width="10" stroke-linecap="round" fill="none"/>
 </svg>
