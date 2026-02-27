@@ -7,6 +7,9 @@ import { UsersPage } from '@/pages/UsersPage'
 import { PipelinesPage } from '@/pages/PipelinesPage'
 import { NotificationsPage } from '@/pages/NotificationsPage'
 import { WeatherPage } from '@/pages/WeatherPage'
+import { GardenAnalyticsPage } from '@/pages/GardenAnalyticsPage'
+import { ApiLogsPage } from '@/pages/ApiLogsPage'
+import { AuditPage } from '@/pages/AuditPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { ErrorPage } from '@/pages/ErrorPage'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
@@ -48,6 +51,18 @@ export const router = createBrowserRouter([
       {
         path: 'weather',
         element: <WeatherPage />,
+      },
+      {
+        path: 'analytics',
+        element: <GardenAnalyticsPage />,
+      },
+      {
+        path: 'logs',
+        element: <ApiLogsPage />,
+      },
+      {
+        path: 'audit',
+        element: <AuditPage />,
       },
       {
         path: '*',

@@ -114,3 +114,51 @@ export interface WeatherAnalyticsResponse {
   }
   records: WeatherRecord[]
 }
+
+export interface GardenAnalytics {
+  totals: {
+    users: number
+    gardens: number
+    beds: number
+    active_plantings: number
+  }
+  plantings_by_status: { status: string; count: number }[]
+  top_plants: { plant_id: number; common_name: string; count: number }[]
+}
+
+export interface ApiRequestLogEntry {
+  id: number
+  timestamp: string
+  method: string
+  endpoint: string
+  user_id: number | null
+  status_code: number
+  latency_ms: number
+  ip_address: string | null
+}
+
+export interface ApiRequestLogResponse {
+  items: ApiRequestLogEntry[]
+  total: number
+  page: number
+  per_page: number
+}
+
+export interface AuditLogEntry {
+  id: number
+  timestamp: string
+  action: string
+  entity_type: string | null
+  entity_id: number | null
+  user_id: number | null
+  user_email: string | null
+  ip_address: string | null
+  details: Record<string, unknown> | null
+}
+
+export interface AuditLogResponse {
+  items: AuditLogEntry[]
+  total: number
+  page: number
+  per_page: number
+}

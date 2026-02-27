@@ -5,6 +5,9 @@ import type {
   AdminUserCreate,
   AdminUserListResponse,
   AdminUserUpdate,
+  ApiRequestLogResponse,
+  AuditLogResponse,
+  GardenAnalytics,
   HealthStatus,
   NotificationLogResponse,
   PipelineRunListResponse,
@@ -90,5 +93,35 @@ export function useWeatherAnalytics(days: number) {
       apiClient
         .get<WeatherAnalyticsResponse>('/admin/analytics/weather', { params: { days } })
         .then((r) => r.data),
+  })
+}
+
+export function useGardenAnalytics() {
+  return useQuery<GardenAnalytics>({
+    queryKey: ['admin', 'analytics', 'gardens'],
+    queryFn: () =>
+      apiClient.get<GardenAnalytics>('/admin/analytics/gardens').then((r) => r.data),
+  })
+}
+
+export function useApiLogs(params: { endpoint?: string; status_class?: number; page?: number }) {
+  return useQuery<ApiRequestLogResponse>({
+    queryKey: ['admin', 'logs', params],
+    queryFn: () =>
+      apiClient.get<ApiRequestLogResponse>('/admin/logs', { params }).then((r) => r.data),
+    refetchInterval: 30_000,
+  })
+}
+
+export function useAuditLog(params: {
+  action?: string
+  entity_type?: string
+  user_id?: number
+  page?: number
+}) {
+  return useQuery<AuditLogResponse>({
+    queryKey: ['admin', 'audit', params],
+    queryFn: () =>
+      apiClient.get<AuditLogResponse>('/admin/audit', { params }).then((r) => r.data),
   })
 }

@@ -6,6 +6,9 @@ import {
   Activity,
   Bell,
   Cloud,
+  BarChart2,
+  FileText,
+  ClipboardList,
   Menu,
   X,
   LogOut,
@@ -37,6 +40,9 @@ const navItems: NavItem[] = [
   { to: '/pipelines', icon: Activity, label: 'Pipelines' },
   { to: '/notifications', icon: Bell, label: 'Notifications' },
   { to: '/weather', icon: Cloud, label: 'Weather' },
+  { to: '/analytics', icon: BarChart2, label: 'Analytics' },
+  { to: '/logs', icon: FileText, label: 'API Logs' },
+  { to: '/audit', icon: ClipboardList, label: 'Audit' },
 ]
 
 function getInitials(first_name: string, last_name: string | null): string {
