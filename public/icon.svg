@@ -1,4 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="100" fill="#3d4f5c"/>
-  <path d="M256 80 L400 140 L400 260 C400 340 330 400 256 432 C182 400 112 340 112 260 L112 140 Z" fill="white"/>
+  <rect width="512" height="512" rx="90" fill="#3d4f5c"/>
+  <!-- Shield body -->
+  <path d="M256 420 C256 420 120 340 120 240 L120 160 L256 130 L392 160 L392 240 C392 340 256 420 256 420 Z" fill="white"/>
+  <!-- Acorn cap -->
+  <path d="M160 175 Q180 130 256 125 Q332 130 352 175 Q310 195 256 198 Q202 195 160 175 Z" fill="white"/>
+  <!-- Stem -->
+  <rect x="248" y="95" width="16" height="35" rx="6" fill="white"/>
 </svg>
