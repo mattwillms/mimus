@@ -25,7 +25,30 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Separator } from '@/components/ui/separator'
 import { useAuth } from '@/store/authStore'
+import { useTheme, type Theme } from '@/store/themeStore'
 import { cn } from '@/lib/utils'
+
+interface ThemeCircleProps {
+  label: string
+  active: boolean
+  onClick: () => void
+  className: string
+}
+
+function ThemeCircle({ label, active, onClick, className }: ThemeCircleProps) {
+  return (
+    <button
+      aria-label={label}
+      title={label}
+      onClick={onClick}
+      className={cn(
+        'h-[22px] w-[22px] rounded-full transition-all duration-200',
+        className,
+        active && 'ring-2 ring-primary ring-offset-2',
+      )}
+    />
+  )
+}
 
 interface NavItem {
   to: string
@@ -53,6 +76,7 @@ function getInitials(first_name: string, last_name: string | null): string {
 
 export function AppLayout() {
   const { user, logout } = useAuth()
+  const { theme, setTheme } = useTheme()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const initials = user ? getInitials(user.first_name, user.last_name) : '?'
@@ -163,6 +187,30 @@ export function AppLayout() {
                   <span className="truncate text-xs text-muted-foreground">{user?.email}</span>
                 </div>
               </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <div className="px-2 py-2">
+                <p className="mb-2 text-xs text-muted-foreground">Theme</p>
+                <div className="flex gap-2">
+                  <ThemeCircle
+                    label="Light"
+                    active={theme === 'light'}
+                    onClick={() => setTheme('light' as Theme)}
+                    className="bg-[hsl(210,20%,96%)] border border-border"
+                  />
+                  <ThemeCircle
+                    label="Dark"
+                    active={theme === 'dark'}
+                    onClick={() => setTheme('dark' as Theme)}
+                    className="bg-[hsl(207,25%,12%)]"
+                  />
+                  <ThemeCircle
+                    label="OLED"
+                    active={theme === 'oled'}
+                    onClick={() => setTheme('oled' as Theme)}
+                    className="bg-black"
+                  />
+                </div>
+              </div>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="cursor-pointer text-destructive focus:text-destructive"

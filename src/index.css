@@ -39,33 +39,47 @@
   }
 
   .dark {
-    --background: 210 25% 8%;
+    --background: 207 25% 12%;
     --foreground: 210 20% 92%;
-
-    --card: 210 22% 11%;
+    --card: 207 22% 16%;
     --card-foreground: 210 20% 92%;
-
-    --popover: 210 22% 11%;
+    --popover: 207 22% 16%;
     --popover-foreground: 210 20% 92%;
-
-    --primary: 207 20% 52%;
-    --primary-foreground: 210 25% 8%;
-
-    --secondary: 210 20% 18%;
+    --primary: 207 20% 55%;
+    --primary-foreground: 207 25% 10%;
+    --secondary: 207 18% 22%;
     --secondary-foreground: 210 20% 92%;
-
-    --muted: 210 20% 18%;
+    --muted: 207 18% 22%;
     --muted-foreground: 210 15% 55%;
-
-    --accent: 207 15% 22%;
-    --accent-foreground: 207 20% 70%;
-
-    --destructive: 0 63% 38%;
+    --accent: 207 15% 26%;
+    --accent-foreground: 207 20% 75%;
+    --destructive: 0 63% 45%;
     --destructive-foreground: 210 20% 92%;
+    --border: 207 18% 24%;
+    --input: 207 18% 24%;
+    --ring: 207 20% 55%;
+  }
 
-    --border: 210 20% 20%;
-    --input: 210 20% 20%;
-    --ring: 207 20% 52%;
+  .oled {
+    --background: 0 0% 0%;
+    --foreground: 210 18% 92%;
+    --card: 0 0% 4%;
+    --card-foreground: 210 18% 92%;
+    --popover: 0 0% 4%;
+    --popover-foreground: 210 18% 92%;
+    --primary: 207 20% 58%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 210 18% 92%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 210 10% 50%;
+    --accent: 207 15% 12%;
+    --accent-foreground: 207 20% 75%;
+    --destructive: 0 63% 45%;
+    --destructive-foreground: 210 18% 92%;
+    --border: 0 0% 12%;
+    --input: 0 0% 12%;
+    --ring: 207 20% 58%;
   }
 }
 
@@ -75,5 +89,6 @@
   }
   body {
     @apply bg-background text-foreground;
+    transition: background-color 300ms ease, color 300ms ease;
   }
 }
