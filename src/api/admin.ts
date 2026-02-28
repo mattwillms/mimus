@@ -7,6 +7,8 @@ import type {
   AdminUserUpdate,
   ApiRequestLogResponse,
   AuditLogResponse,
+  FetchHistoryResponse,
+  FetchStatusResponse,
   GardenAnalytics,
   HealthStatus,
   NotificationLogResponse,
@@ -123,5 +125,45 @@ export function useAuditLog(params: {
     queryKey: ['admin', 'audit', params],
     queryFn: () =>
       apiClient.get<AuditLogResponse>('/admin/audit', { params }).then((r) => r.data),
+  })
+}
+
+// ── Data Sources ─────────────────────────────────────────────────
+
+export function useFetchStatus(refetchInterval = 10_000) {
+  return useQuery<FetchStatusResponse>({
+    queryKey: ['admin', 'fetch', 'status'],
+    queryFn: () =>
+      apiClient.get<FetchStatusResponse>('/admin/fetch/status').then((r) => r.data),
+    refetchInterval,
+  })
+}
+
+export function useFetchHistory(params: {
+  source?: string
+  page?: number
+  per_page?: number
+}) {
+  return useQuery<FetchHistoryResponse>({
+    queryKey: ['admin', 'fetch', 'history', params],
+    queryFn: () =>
+      apiClient
+        .get<FetchHistoryResponse>('/admin/fetch/history', { params })
+        .then((r) => r.data),
+  })
+}
+
+export function useTriggerFetch() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (params: { source: 'permapeople' | 'perenual'; force_full?: boolean }) => {
+      const url = `/admin/fetch/${params.source}`
+      const body =
+        params.source === 'permapeople' ? { force_full: params.force_full ?? false } : undefined
+      return apiClient.post(url, body).then((r) => r.data)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'fetch'] })
+    },
   })
 }

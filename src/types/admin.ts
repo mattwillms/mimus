@@ -162,3 +162,44 @@ export interface AuditLogResponse {
   page: number
   per_page: number
 }
+
+// ── Data Sources ─────────────────────────────────────────────────
+
+export interface DataSourceRun {
+  id: number
+  source?: string
+  status: string
+  started_at: string
+  finished_at: string | null
+  new_species?: number | null
+  updated?: number | null
+  gap_filled?: number | null
+  unchanged?: number | null
+  skipped?: number | null
+  errors?: number | null
+  triggered_by?: string
+  // Perenual-specific (from SeederRun)
+  current_page?: number | null
+  records_synced?: number | null
+  requests_used?: number | null
+}
+
+export interface DataSourceStatus {
+  latest_run: DataSourceRun | null
+  total_records: number
+  matched_to_plants: number
+  is_running: boolean
+}
+
+export interface FetchStatusResponse {
+  permapeople: DataSourceStatus
+  perenual: DataSourceStatus
+  plants_total: number
+}
+
+export interface FetchHistoryResponse {
+  items: DataSourceRun[]
+  total: number
+  page: number
+  per_page: number
+}
