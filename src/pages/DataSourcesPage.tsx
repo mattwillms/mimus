@@ -11,8 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
-import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
 import {
   Table,
   TableBody,
@@ -33,15 +32,21 @@ import { Loader2 } from 'lucide-react'
 
 const STATUS_COLORS: Record<string, string> = {
   completed: 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300',
+  budget_reached: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
   failed: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300',
-  running: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
+  running: 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  budget_reached: 'Budget Reached',
 }
 
 function statusBadge(status: string | undefined) {
   if (!status) return null
+  const label = STATUS_LABELS[status] ?? status
   return (
     <Badge className={STATUS_COLORS[status] ?? 'bg-gray-100 text-gray-600'}>
-      {status}
+      {label}
     </Badge>
   )
 }
@@ -95,7 +100,7 @@ function SourceCard({
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-base font-medium">{label}</CardTitle>
         {data.is_running ? (
-          <Badge className={STATUS_COLORS.running}>
+          <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
             <Loader2 className="mr-1 h-3 w-3 animate-spin" />
             Running
           </Badge>
@@ -140,6 +145,13 @@ function SourceCard({
           </div>
         )}
 
+        {/* Budget note for Perenual */}
+        {name === 'perenual' && run?.status === 'budget_reached' && (
+          <p className="text-xs text-amber-600 dark:text-amber-400">
+            Daily limit reached (95/100 requests) — resumes tomorrow
+          </p>
+        )}
+
         {/* Trigger */}
         <div className="flex items-center gap-3">
           <Button
@@ -157,16 +169,31 @@ function SourceCard({
             )}
           </Button>
           {name === 'permapeople' && (
-            <div className="flex items-center gap-2">
-              <Switch
-                id="force-full"
-                checked={forceFull}
-                onCheckedChange={setForceFull}
+            <div className="inline-flex rounded-md border border-border text-xs">
+              <button
+                className={cn(
+                  'px-3 py-1.5 rounded-l-md transition-colors',
+                  !forceFull
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-muted',
+                )}
                 disabled={data.is_running}
-              />
-              <Label htmlFor="force-full" className="text-xs text-muted-foreground">
-                Full scan
-              </Label>
+                onClick={() => setForceFull(false)}
+              >
+                Update
+              </button>
+              <button
+                className={cn(
+                  'px-3 py-1.5 rounded-r-md transition-colors border-l border-border',
+                  forceFull
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-muted',
+                )}
+                disabled={data.is_running}
+                onClick={() => setForceFull(true)}
+              >
+                Full
+              </button>
             </div>
           )}
         </div>
