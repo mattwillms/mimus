@@ -342,15 +342,17 @@ function HistoryTable({ refetchInterval }: { refetchInterval?: number }) {
 }
 
 function HistoryRow({ run }: { run: DataSourceRun }) {
-  // For perenual, show records_synced under "New" and current_page as tooltip
+  const [errorOpen, setErrorOpen] = useState(false)
   const isPerenual = run.source === 'perenual'
 
   const newCol = isPerenual ? run.records_synced : run.new_species
   const updatedCol = isPerenual ? null : run.updated
   const gapCol = isPerenual ? null : run.gap_filled
+  const hasErrors = (run.errors ?? 0) > 0
+  const hasErrorDetail = !!run.error_detail
 
   return (
-    <TooltipProvider>
+    <>
       <TableRow>
         <TableCell className="font-mono text-xs font-medium capitalize">
           {run.source}
@@ -360,12 +362,14 @@ function HistoryRow({ run }: { run: DataSourceRun }) {
         <TableCell>{formatDuration(run.started_at, run.finished_at)}</TableCell>
         <TableCell>
           {isPerenual && run.current_page != null ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="cursor-default">{fmt(newCol)}</span>
-              </TooltipTrigger>
-              <TooltipContent>Page {run.current_page}</TooltipContent>
-            </Tooltip>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="cursor-default">{fmt(newCol)}</span>
+                </TooltipTrigger>
+                <TooltipContent>Page {run.current_page}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           ) : (
             fmt(newCol)
           )}
@@ -373,26 +377,35 @@ function HistoryRow({ run }: { run: DataSourceRun }) {
         <TableCell>{fmt(updatedCol)}</TableCell>
         <TableCell>{fmt(gapCol)}</TableCell>
         <TableCell>
-          {(run.errors ?? 0) > 0 ? (
-            run.error_detail ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="cursor-default text-destructive">{fmt(run.errors)}</span>
-                </TooltipTrigger>
-                <TooltipContent className="max-w-sm whitespace-pre-wrap text-xs">
-                  {run.error_detail}
-                </TooltipContent>
-              </Tooltip>
-            ) : (
-              <span className="text-destructive">{fmt(run.errors)}</span>
-            )
+          {hasErrors ? (
+            <button
+              className="inline-flex items-center gap-0.5 text-destructive hover:underline"
+              onClick={() => hasErrorDetail && setErrorOpen(!errorOpen)}
+            >
+              {fmt(run.errors)}
+              {hasErrorDetail &&
+                (errorOpen ? (
+                  <ChevronDown className="h-3 w-3" />
+                ) : (
+                  <ChevronRight className="h-3 w-3" />
+                ))}
+            </button>
           ) : (
             fmt(run.errors)
           )}
         </TableCell>
         <TableCell className="text-muted-foreground">{run.triggered_by ?? '—'}</TableCell>
       </TableRow>
-    </TooltipProvider>
+      {errorOpen && run.error_detail && (
+        <TableRow>
+          <TableCell colSpan={9} className="p-0">
+            <pre className="max-h-40 overflow-auto bg-muted p-2 text-xs text-destructive">
+              {run.error_detail}
+            </pre>
+          </TableCell>
+        </TableRow>
+      )}
+    </>
   )
 }
 
