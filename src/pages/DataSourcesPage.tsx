@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useFetchStatus, useFetchHistory, useTriggerFetch } from '@/api/admin'
-import type { DataSourceStatus, DataSourceRun } from '@/types/admin'
+import { useFetchStatus, useFetchHistory, useTriggerFetch, useTriggerEnrichment } from '@/api/admin'
+import type { DataSourceStatus, DataSourceRun, EnrichmentStatus } from '@/types/admin'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -238,6 +238,119 @@ function SourceCard({
   )
 }
 
+// ── Enrichment Card ──────────────────────────────────────────────
+
+function EnrichmentCard({
+  data,
+  onTrigger,
+  triggerPending,
+}: {
+  data: EnrichmentStatus
+  onTrigger: () => void
+  triggerPending: boolean
+}) {
+  const [errorOpen, setErrorOpen] = useState(false)
+  const run = data.latest_run
+  const hasErrors = (run?.errors ?? 0) > 0
+  const hasErrorDetail = !!run?.error_detail
+  const buttonDisabled = data.is_running || triggerPending
+
+  // Detect unmapped values warning (enrichment stores these in error_detail with "Unmapped" prefix)
+  const hasUnmapped = run?.error_detail?.includes('Unmapped') ?? false
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-base font-medium">Enrichment Engine</CardTitle>
+        {data.is_running ? (
+          <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
+            <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+            Running
+          </Badge>
+        ) : (
+          statusBadge(run?.status)
+        )}
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-4 text-sm">
+          <div>
+            <p className="text-muted-foreground">Plants enriched</p>
+            <p className="text-lg font-semibold">{fmt(run?.new_species)}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Fields updated</p>
+            <p className="text-lg font-semibold">{fmt(run?.updated)}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Last run</p>
+            <p className="text-lg font-semibold">{timeAgo(run?.started_at)}</p>
+          </div>
+        </div>
+
+        {/* Error / unmapped summary */}
+        {run && (
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+            <span>Unchanged: {fmt(run.unchanged)}</span>
+            <span>Skipped: {fmt(run.skipped)}</span>
+            {hasErrors ? (
+              <button
+                className="inline-flex items-center gap-0.5 text-destructive hover:underline"
+                onClick={() => hasErrorDetail && setErrorOpen(!errorOpen)}
+              >
+                {fmt(run.errors)} errors
+                {hasErrorDetail &&
+                  (errorOpen ? (
+                    <ChevronDown className="h-3 w-3" />
+                  ) : (
+                    <ChevronRight className="h-3 w-3" />
+                  ))}
+              </button>
+            ) : (
+              <span>Errors: {fmt(run.errors)}</span>
+            )}
+          </div>
+        )}
+
+        {/* Expandable error detail */}
+        {errorOpen && run?.error_detail && (
+          <pre className="max-h-40 overflow-auto rounded bg-muted p-2 text-xs text-destructive">
+            {run.error_detail}
+          </pre>
+        )}
+
+        {/* Unmapped values warning (when no errors expanded) */}
+        {!errorOpen && hasUnmapped && !hasErrors && (
+          <p className="text-xs text-amber-600 dark:text-amber-400">
+            Some source values could not be mapped — expand errors for details
+          </p>
+        )}
+
+        {/* Trigger */}
+        <Button
+          size="sm"
+          disabled={buttonDisabled}
+          onClick={onTrigger}
+        >
+          {triggerPending ? (
+            <>
+              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+              Queued...
+            </>
+          ) : data.is_running ? (
+            <>
+              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+              Running...
+            </>
+          ) : (
+            'Run Enrichment'
+          )}
+        </Button>
+      </CardContent>
+    </Card>
+  )
+}
+
 // ── History Table ────────────────────────────────────────────────
 
 function HistoryTable({ refetchInterval }: { refetchInterval?: number }) {
@@ -271,6 +384,7 @@ function HistoryTable({ refetchInterval }: { refetchInterval?: number }) {
             <SelectItem value="all">All sources</SelectItem>
             <SelectItem value="permapeople">Permapeople</SelectItem>
             <SelectItem value="perenual">Perenual</SelectItem>
+            <SelectItem value="enrichment">Enrichment</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -344,10 +458,11 @@ function HistoryTable({ refetchInterval }: { refetchInterval?: number }) {
 function HistoryRow({ run }: { run: DataSourceRun }) {
   const [errorOpen, setErrorOpen] = useState(false)
   const isPerenual = run.source === 'perenual'
+  const isEnrichment = run.source === 'enrichment'
 
   const newCol = isPerenual ? run.records_synced : run.new_species
   const updatedCol = isPerenual ? null : run.updated
-  const gapCol = isPerenual ? null : run.gap_filled
+  const gapCol = isPerenual || isEnrichment ? null : run.gap_filled
   const hasErrors = (run.errors ?? 0) > 0
   const hasErrorDetail = !!run.error_detail
 
@@ -415,9 +530,11 @@ export function DataSourcesPage() {
   const [pollInterval, setPollInterval] = useState(10_000)
   const { data: status, isLoading, isError } = useFetchStatus(pollInterval)
   const trigger = useTriggerFetch()
+  const enrichTrigger = useTriggerEnrichment()
 
   // Dynamic polling: 5s when running, 10s when idle
-  const anyRunning = status?.permapeople.is_running || status?.perenual.is_running
+  const anyRunning =
+    status?.permapeople.is_running || status?.perenual.is_running || status?.enrichment.is_running
   if (anyRunning && pollInterval !== 5_000) setPollInterval(5_000)
   if (!anyRunning && pollInterval !== 10_000) setPollInterval(10_000)
 
@@ -458,6 +575,14 @@ export function DataSourcesPage() {
             triggerPending={trigger.isPending}
           />
         </div>
+      )}
+
+      {status && (
+        <EnrichmentCard
+          data={status.enrichment}
+          onTrigger={() => enrichTrigger.mutate()}
+          triggerPending={enrichTrigger.isPending}
+        />
       )}
 
       <HistoryTable refetchInterval={anyRunning ? 5_000 : undefined} />

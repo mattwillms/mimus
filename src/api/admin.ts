@@ -172,3 +172,13 @@ export function useTriggerFetch() {
     },
   })
 }
+
+export function useTriggerEnrichment() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => apiClient.post('/admin/enrich').then((r) => r.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'fetch'] })
+    },
+  })
+}

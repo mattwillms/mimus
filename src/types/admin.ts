@@ -192,9 +192,15 @@ export interface DataSourceStatus {
   is_running: boolean
 }
 
+export interface EnrichmentStatus {
+  latest_run: DataSourceRun | null
+  is_running: boolean
+}
+
 export interface FetchStatusResponse {
   permapeople: DataSourceStatus
   perenual: DataSourceStatus
+  enrichment: EnrichmentStatus
   plants_total: number
 }
 
