@@ -169,6 +169,10 @@ export function useTriggerFetch() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'fetch', 'status'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'fetch', 'history'] })
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['admin', 'fetch', 'status'] })
+        queryClient.invalidateQueries({ queryKey: ['admin', 'fetch', 'history'] })
+      }, 2_000)
     },
   })
 }
@@ -178,7 +182,12 @@ export function useTriggerEnrichment() {
   return useMutation({
     mutationFn: () => apiClient.post('/admin/enrich').then((r) => r.data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'fetch'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'fetch', 'status'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'fetch', 'history'] })
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['admin', 'fetch', 'status'] })
+        queryClient.invalidateQueries({ queryKey: ['admin', 'fetch', 'history'] })
+      }, 2_000)
     },
   })
 }

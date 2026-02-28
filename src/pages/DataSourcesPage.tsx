@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useFetchStatus, useFetchHistory, useTriggerFetch, useTriggerEnrichment } from '@/api/admin'
 import type { DataSourceStatus, DataSourceRun, EnrichmentStatus } from '@/types/admin'
 import { Badge } from '@/components/ui/badge'
@@ -85,25 +85,28 @@ function SourceCard({
   data,
   onTrigger,
   triggerPending,
+  justTriggered,
 }: {
   name: 'permapeople' | 'perenual'
   label: string
   data: DataSourceStatus
   onTrigger: (force_full: boolean) => void
   triggerPending: boolean
+  justTriggered: boolean
 }) {
   const [forceFull, setForceFull] = useState(false)
   const [errorOpen, setErrorOpen] = useState(false)
   const run = data.latest_run
   const hasErrors = (run?.errors ?? 0) > 0
   const hasErrorDetail = !!run?.error_detail
-  const buttonDisabled = data.is_running || triggerPending
+  const showRunning = data.is_running || justTriggered
+  const buttonDisabled = showRunning || triggerPending
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-base font-medium">{label}</CardTitle>
-        {data.is_running ? (
+        {showRunning ? (
           <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
             <Loader2 className="mr-1 h-3 w-3 animate-spin" />
             Running
@@ -195,7 +198,7 @@ function SourceCard({
                 <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
                 Queued...
               </>
-            ) : data.is_running ? (
+            ) : showRunning ? (
               <>
                 <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
                 Running...
@@ -244,16 +247,19 @@ function EnrichmentCard({
   data,
   onTrigger,
   triggerPending,
+  justTriggered,
 }: {
   data: EnrichmentStatus
   onTrigger: () => void
   triggerPending: boolean
+  justTriggered: boolean
 }) {
   const [errorOpen, setErrorOpen] = useState(false)
   const run = data.latest_run
   const hasErrors = (run?.errors ?? 0) > 0
   const hasErrorDetail = !!run?.error_detail
-  const buttonDisabled = data.is_running || triggerPending
+  const showRunning = data.is_running || justTriggered
+  const buttonDisabled = showRunning || triggerPending
 
   // Detect unmapped values warning (enrichment stores these in error_detail with "Unmapped" prefix)
   const hasUnmapped = run?.error_detail?.includes('Unmapped') ?? false
@@ -262,7 +268,7 @@ function EnrichmentCard({
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-base font-medium">Enrichment Engine</CardTitle>
-        {data.is_running ? (
+        {showRunning ? (
           <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
             <Loader2 className="mr-1 h-3 w-3 animate-spin" />
             Running
@@ -337,7 +343,7 @@ function EnrichmentCard({
               <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
               Queued...
             </>
-          ) : data.is_running ? (
+          ) : showRunning ? (
             <>
               <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
               Running...
@@ -531,15 +537,39 @@ export function DataSourcesPage() {
   const { data: status, isLoading, isError } = useFetchStatus(pollInterval)
   const trigger = useTriggerFetch()
   const enrichTrigger = useTriggerEnrichment()
+  const [justTriggered, setJustTriggered] = useState<Record<string, boolean>>({})
+
+  // Clear justTriggered when poll confirms running
+  useEffect(() => {
+    if (status?.permapeople.is_running && justTriggered.permapeople)
+      setJustTriggered((prev) => ({ ...prev, permapeople: false }))
+    if (status?.perenual.is_running && justTriggered.perenual)
+      setJustTriggered((prev) => ({ ...prev, perenual: false }))
+    if (status?.enrichment.is_running && justTriggered.enrichment)
+      setJustTriggered((prev) => ({ ...prev, enrichment: false }))
+  }, [status]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Dynamic polling: 5s when running, 10s when idle
   const anyRunning =
-    status?.permapeople.is_running || status?.perenual.is_running || status?.enrichment.is_running
+    status?.permapeople.is_running || status?.perenual.is_running || status?.enrichment.is_running ||
+    justTriggered.permapeople || justTriggered.perenual || justTriggered.enrichment
   if (anyRunning && pollInterval !== 5_000) setPollInterval(5_000)
   if (!anyRunning && pollInterval !== 10_000) setPollInterval(10_000)
 
   const handleTrigger = (source: 'permapeople' | 'perenual', forceFull: boolean) => {
     trigger.mutate({ source, force_full: forceFull })
+    setJustTriggered((prev) => ({ ...prev, [source]: true }))
+    setTimeout(() => {
+      setJustTriggered((prev) => ({ ...prev, [source]: false }))
+    }, 5_000)
+  }
+
+  const handleEnrichTrigger = () => {
+    enrichTrigger.mutate()
+    setJustTriggered((prev) => ({ ...prev, enrichment: true }))
+    setTimeout(() => {
+      setJustTriggered((prev) => ({ ...prev, enrichment: false }))
+    }, 5_000)
   }
 
   return (
@@ -566,6 +596,7 @@ export function DataSourcesPage() {
             data={status.permapeople}
             onTrigger={(ff) => handleTrigger('permapeople', ff)}
             triggerPending={trigger.isPending}
+            justTriggered={!!justTriggered.permapeople}
           />
           <SourceCard
             name="perenual"
@@ -573,6 +604,7 @@ export function DataSourcesPage() {
             data={status.perenual}
             onTrigger={() => handleTrigger('perenual', false)}
             triggerPending={trigger.isPending}
+            justTriggered={!!justTriggered.perenual}
           />
         </div>
       )}
@@ -580,8 +612,9 @@ export function DataSourcesPage() {
       {status && (
         <EnrichmentCard
           data={status.enrichment}
-          onTrigger={() => enrichTrigger.mutate()}
+          onTrigger={handleEnrichTrigger}
           triggerPending={enrichTrigger.isPending}
+          justTriggered={!!justTriggered.enrichment}
         />
       )}
 
