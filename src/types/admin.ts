@@ -177,6 +177,7 @@ export interface DataSourceRun {
   unchanged?: number | null
   skipped?: number | null
   errors?: number | null
+  error_detail?: string | null
   triggered_by?: string
   // Perenual-specific (from SeederRun)
   current_page?: number | null

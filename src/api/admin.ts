@@ -139,17 +139,21 @@ export function useFetchStatus(refetchInterval = 10_000) {
   })
 }
 
-export function useFetchHistory(params: {
-  source?: string
-  page?: number
-  per_page?: number
-}) {
+export function useFetchHistory(
+  params: {
+    source?: string
+    page?: number
+    per_page?: number
+  },
+  refetchInterval?: number,
+) {
   return useQuery<FetchHistoryResponse>({
     queryKey: ['admin', 'fetch', 'history', params],
     queryFn: () =>
       apiClient
         .get<FetchHistoryResponse>('/admin/fetch/history', { params })
         .then((r) => r.data),
+    refetchInterval,
   })
 }
 
@@ -163,7 +167,8 @@ export function useTriggerFetch() {
       return apiClient.post(url, body).then((r) => r.data)
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'fetch'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'fetch', 'status'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'fetch', 'history'] })
     },
   })
 }

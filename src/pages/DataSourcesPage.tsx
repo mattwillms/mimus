@@ -26,7 +26,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { Loader2 } from 'lucide-react'
+import { ChevronDown, ChevronRight, Loader2 } from 'lucide-react'
 
 // ── Helpers ──────────────────────────────────────────────────────
 
@@ -93,7 +93,11 @@ function SourceCard({
   triggerPending: boolean
 }) {
   const [forceFull, setForceFull] = useState(false)
+  const [errorOpen, setErrorOpen] = useState(false)
   const run = data.latest_run
+  const hasErrors = (run?.errors ?? 0) > 0
+  const hasErrorDetail = !!run?.error_detail
+  const buttonDisabled = data.is_running || triggerPending
 
   return (
     <Card>
@@ -133,7 +137,22 @@ function SourceCard({
                 <span>New: {fmt(run.new_species)}</span>
                 <span>Updated: {fmt(run.updated)}</span>
                 <span>Gaps: {fmt(run.gap_filled)}</span>
-                <span>Errors: {fmt(run.errors)}</span>
+                {hasErrors ? (
+                  <button
+                    className="inline-flex items-center gap-0.5 text-destructive hover:underline"
+                    onClick={() => hasErrorDetail && setErrorOpen(!errorOpen)}
+                  >
+                    {fmt(run.errors)} errors
+                    {hasErrorDetail &&
+                      (errorOpen ? (
+                        <ChevronDown className="h-3 w-3" />
+                      ) : (
+                        <ChevronRight className="h-3 w-3" />
+                      ))}
+                  </button>
+                ) : (
+                  <span>Errors: {fmt(run.errors)}</span>
+                )}
               </>
             ) : (
               <>
@@ -143,6 +162,18 @@ function SourceCard({
               </>
             )}
           </div>
+        )}
+
+        {/* Error detail (expandable) */}
+        {errorOpen && run?.error_detail && (
+          <pre className="max-h-40 overflow-auto rounded bg-muted p-2 text-xs text-destructive">
+            {run.error_detail}
+          </pre>
+        )}
+
+        {/* Error detail for Perenual (run status failed) */}
+        {name === 'perenual' && run?.status === 'failed' && run.error_detail && (
+          <p className="text-xs text-destructive">{run.error_detail}</p>
         )}
 
         {/* Budget note for Perenual */}
@@ -156,10 +187,15 @@ function SourceCard({
         <div className="flex items-center gap-3">
           <Button
             size="sm"
-            disabled={data.is_running || triggerPending}
+            disabled={buttonDisabled}
             onClick={() => onTrigger(name === 'permapeople' ? forceFull : false)}
           >
-            {data.is_running ? (
+            {triggerPending ? (
+              <>
+                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                Queued...
+              </>
+            ) : data.is_running ? (
               <>
                 <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
                 Running...
@@ -177,7 +213,7 @@ function SourceCard({
                     ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground hover:bg-muted',
                 )}
-                disabled={data.is_running}
+                disabled={buttonDisabled}
                 onClick={() => setForceFull(false)}
               >
                 Update
@@ -189,7 +225,7 @@ function SourceCard({
                     ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground hover:bg-muted',
                 )}
-                disabled={data.is_running}
+                disabled={buttonDisabled}
                 onClick={() => setForceFull(true)}
               >
                 Full
@@ -204,7 +240,7 @@ function SourceCard({
 
 // ── History Table ────────────────────────────────────────────────
 
-function HistoryTable() {
+function HistoryTable({ refetchInterval }: { refetchInterval?: number }) {
   const [sourceFilter, setSourceFilter] = useState('all')
   const [page, setPage] = useState(1)
 
@@ -214,7 +250,7 @@ function HistoryTable() {
     per_page: 20,
   }
 
-  const { data, isLoading } = useFetchHistory(params)
+  const { data, isLoading } = useFetchHistory(params, refetchInterval)
   const totalPages = data ? Math.ceil(data.total / 20) : 1
 
   return (
@@ -338,7 +374,18 @@ function HistoryRow({ run }: { run: DataSourceRun }) {
         <TableCell>{fmt(gapCol)}</TableCell>
         <TableCell>
           {(run.errors ?? 0) > 0 ? (
-            <span className="text-destructive">{fmt(run.errors)}</span>
+            run.error_detail ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="cursor-default text-destructive">{fmt(run.errors)}</span>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-sm whitespace-pre-wrap text-xs">
+                  {run.error_detail}
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <span className="text-destructive">{fmt(run.errors)}</span>
+            )
           ) : (
             fmt(run.errors)
           )}
@@ -400,7 +447,7 @@ export function DataSourcesPage() {
         </div>
       )}
 
-      <HistoryTable />
+      <HistoryTable refetchInterval={anyRunning ? 5_000 : undefined} />
     </div>
   )
 }
