@@ -210,3 +210,149 @@ export interface FetchHistoryResponse {
   page: number
   per_page: number
 }
+
+// ── Plant Browser ───────────────────────────────────────────────
+
+export interface AdminPlantSummary {
+  id: number
+  common_name: string
+  scientific_name: string | null
+  cultivar_name: string | null
+  plant_type: string | null
+  source: string
+  data_sources: string[] | null
+  has_perenual: boolean
+  has_permapeople: boolean
+  field_count: number
+  image_url: string | null
+}
+
+export interface AdminPlantListResponse {
+  items: AdminPlantSummary[]
+  total: number
+  page: number
+  per_page: number
+}
+
+export interface AdminPlantBrowseParams {
+  name?: string
+  source?: string
+  both_sources?: boolean
+  sort_by?: string
+  page?: number
+  per_page?: number
+}
+
+export interface PerenualSourceData {
+  perenual_id: number
+  common_name: string | null
+  scientific_name: string | null
+  image_url: string | null
+  fetched_at: string
+}
+
+export interface PermapeopleSourceData {
+  permapeople_id: number
+  scientific_name: string | null
+  common_name: string | null
+  description: string | null
+  water_requirement: string | null
+  light_requirement: string | null
+  hardiness_zone: string | null
+  growth: string | null
+  soil_type: string | null
+  layer: string | null
+  edible: string | null
+  edible_parts: string | null
+  family: string | null
+  height: string | null
+  width: string | null
+  spacing: string | null
+  life_cycle: string | null
+  days_to_harvest: string | null
+  days_to_maturity: string | null
+  soil_ph: string | null
+  propagation_method: string | null
+  propagation_cuttings: string | null
+  propagation_direct_sowing: string | null
+  propagation_transplanting: string | null
+  germination_time: string | null
+  germination_temperature: string | null
+  sow_outdoors: string | null
+  sow_indoors: string | null
+  start_indoors_weeks: string | null
+  start_outdoors_weeks: string | null
+  plant_transplant: string | null
+  plant_cuttings: string | null
+  plant_division: string | null
+  seed_planting_depth: string | null
+  seed_viability: string | null
+  seed_weight_per_1000_g: string | null
+  nitrogen_fixing: string | null
+  nitrogen_usage: string | null
+  drought_resistant: string | null
+  native_to: string | null
+  introduced_into: string | null
+  habitat: string | null
+  root_type: string | null
+  root_depth: string | null
+  leaves: string | null
+  pests: string | null
+  diseases: string | null
+  pollination: string | null
+  medicinal: string | null
+  medicinal_parts: string | null
+  edible_uses: string | null
+  utility: string | null
+  warning: string | null
+  alternate_name: string | null
+  genus: string | null
+  wikipedia_url: string | null
+  pfaf_url: string | null
+  powo_url: string | null
+  image_url: string | null
+  slug: string | null
+  version: number | null
+  fetched_at: string
+}
+
+export interface PlantSourcesResponse {
+  plant_id: number
+  common_name: string
+  scientific_name: string | null
+  perenual: PerenualSourceData | null
+  permapeople: PermapeopleSourceData | null
+}
+
+// ── Coverage ────────────────────────────────────────────────────
+
+export interface FieldCoverageItem {
+  field_name: string
+  populated: number
+  total: number
+  pct: number
+}
+
+export interface PlantCoverageResponse {
+  total_plants: number
+  fields: FieldCoverageItem[]
+}
+
+// ── Enrichment Rules ────────────────────────────────────────────
+
+export interface EnrichmentRule {
+  id: number
+  field_name: string
+  strategy: string
+  source_priority: string[] | null
+  updated_at: string
+}
+
+export interface EnrichmentRulesResponse {
+  items: EnrichmentRule[]
+}
+
+export interface EnrichmentRuleUpdate {
+  strategy?: string
+  source_priority?: string[]
+}

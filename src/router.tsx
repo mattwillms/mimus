@@ -11,6 +11,8 @@ import { WeatherPage } from '@/pages/WeatherPage'
 import { GardenAnalyticsPage } from '@/pages/GardenAnalyticsPage'
 import { ApiLogsPage } from '@/pages/ApiLogsPage'
 import { AuditPage } from '@/pages/AuditPage'
+import { PlantBrowserPage } from '@/pages/PlantBrowserPage'
+import { PlantDataPage } from '@/pages/PlantDataPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { ErrorPage } from '@/pages/ErrorPage'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
@@ -44,6 +46,14 @@ export const router = createBrowserRouter([
       {
         path: 'data-sources',
         element: <DataSourcesPage />,
+      },
+      {
+        path: 'plants',
+        element: <PlantBrowserPage />,
+      },
+      {
+        path: 'plant-data',
+        element: <PlantDataPage />,
       },
       {
         path: 'pipelines',

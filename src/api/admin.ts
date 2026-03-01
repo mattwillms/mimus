@@ -1,18 +1,25 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/api/client'
 import type {
+  AdminPlantBrowseParams,
+  AdminPlantListResponse,
   AdminUser,
   AdminUserCreate,
   AdminUserListResponse,
   AdminUserUpdate,
   ApiRequestLogResponse,
   AuditLogResponse,
+  EnrichmentRule,
+  EnrichmentRuleUpdate,
+  EnrichmentRulesResponse,
   FetchHistoryResponse,
   FetchStatusResponse,
   GardenAnalytics,
   HealthStatus,
   NotificationLogResponse,
   PipelineRunListResponse,
+  PlantCoverageResponse,
+  PlantSourcesResponse,
   WeatherAnalyticsResponse,
 } from '@/types/admin'
 
@@ -176,6 +183,61 @@ export function useTriggerFetch() {
     },
   })
 }
+
+// ── Plant Browser ────────────────────────────────────────────────
+
+export function useAdminPlants(params: AdminPlantBrowseParams) {
+  return useQuery<AdminPlantListResponse>({
+    queryKey: ['admin', 'plants', params],
+    queryFn: () =>
+      apiClient
+        .get<AdminPlantListResponse>('/admin/plants/browse', { params })
+        .then((r) => r.data),
+  })
+}
+
+export function useAdminPlantSources(plantId: number | null) {
+  return useQuery<PlantSourcesResponse>({
+    queryKey: ['admin', 'plants', plantId, 'sources'],
+    queryFn: () =>
+      apiClient
+        .get<PlantSourcesResponse>(`/admin/plants/${plantId}/sources`)
+        .then((r) => r.data),
+    enabled: plantId !== null,
+  })
+}
+
+// ── Coverage + Enrichment Rules ──────────────────────────────────
+
+export function usePlantCoverage() {
+  return useQuery<PlantCoverageResponse>({
+    queryKey: ['admin', 'plants', 'coverage'],
+    queryFn: () =>
+      apiClient.get<PlantCoverageResponse>('/admin/plants/coverage').then((r) => r.data),
+  })
+}
+
+export function useEnrichmentRules() {
+  return useQuery<EnrichmentRulesResponse>({
+    queryKey: ['admin', 'enrichment', 'rules'],
+    queryFn: () =>
+      apiClient.get<EnrichmentRulesResponse>('/admin/enrichment/rules').then((r) => r.data),
+  })
+}
+
+export function useUpdateEnrichmentRule() {
+  const queryClient = useQueryClient()
+  return useMutation<EnrichmentRule, Error, { field_name: string; data: EnrichmentRuleUpdate }>({
+    mutationFn: ({ field_name, data }) =>
+      apiClient
+        .patch<EnrichmentRule>(`/admin/enrichment/rules/${field_name}`, data)
+        .then((r) => r.data),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ['admin', 'enrichment', 'rules'] }),
+  })
+}
+
+// ── Triggers ─────────────────────────────────────────────────────
 
 export function useTriggerEnrichment() {
   const queryClient = useQueryClient()
