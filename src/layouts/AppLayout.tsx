@@ -13,6 +13,7 @@ import {
   FileText,
   ClipboardList,
   Menu,
+  PanelLeftClose,
   X,
   LogOut,
   ChevronDown,
@@ -84,6 +85,15 @@ export function AppLayout() {
   const { user, logout } = useAuth()
   const { theme, setTheme } = useTheme()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    return localStorage.getItem('mimus-sidebar-collapsed') === 'true'
+  })
+
+  function toggleCollapsed() {
+    const next = !sidebarCollapsed
+    setSidebarCollapsed(next)
+    localStorage.setItem('mimus-sidebar-collapsed', String(next))
+  }
 
   const initials = user ? getInitials(user.first_name, user.last_name) : '?'
 
@@ -100,8 +110,10 @@ export function AppLayout() {
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-30 flex w-60 flex-col border-r border-border bg-card transition-transform duration-200 ease-in-out lg:static lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-30 flex w-60 flex-col border-r border-border bg-card transition-transform duration-200 ease-in-out',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+          !sidebarCollapsed && 'lg:static lg:translate-x-0',
+          sidebarCollapsed && 'lg:-translate-x-full lg:fixed',
         )}
       >
         {/* Wordmark */}
@@ -164,8 +176,19 @@ export function AppLayout() {
             <Menu className="h-5 w-5" />
           </button>
 
-          {/* Mobile wordmark */}
-          <span className="font-serif text-xl font-semibold tracking-tight text-foreground lg:hidden">
+          {/* Desktop collapse toggle */}
+          <button
+            className="hidden rounded p-1 text-muted-foreground hover:text-foreground lg:block"
+            onClick={toggleCollapsed}
+            aria-label="Toggle sidebar"
+          >
+            {sidebarCollapsed ? <Menu className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
+          </button>
+
+          <span className={cn(
+            'font-serif text-xl font-semibold tracking-tight text-foreground',
+            !sidebarCollapsed && 'lg:hidden',
+          )}>
             Mimus
           </span>
 
