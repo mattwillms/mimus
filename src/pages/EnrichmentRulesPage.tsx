@@ -48,9 +48,14 @@ export function EnrichmentRulesPage() {
     fetchStatus?.enrichment.is_running
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-base font-semibold text-foreground">Enrichment Rules</h2>
+        <div>
+          <h1 className="font-serif text-2xl font-semibold text-foreground">Enrichment Rules</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {rulesData ? `${rulesData.items.length} rules configured` : 'Loading...'}
+          </p>
+        </div>
         <Button
           size="sm"
           disabled={!!anyRunning || enrichTrigger.isPending}
