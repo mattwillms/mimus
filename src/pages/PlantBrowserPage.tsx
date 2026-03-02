@@ -157,10 +157,10 @@ export function PlantBrowserPage() {
 
   return (
     <>
-    <div className="mx-auto max-w-7xl space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-semibold text-foreground">Plant Browser</h1>
+        <h1 className="font-serif text-2xl font-semibold text-foreground">Plant Browser</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {data ? `${data.total.toLocaleString()} plants` : 'Loading...'}
         </p>

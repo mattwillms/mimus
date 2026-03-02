@@ -153,7 +153,7 @@ export function UsersPage() {
     : ''
 
   return (
-    <div className="mx-auto max-w-5xl space-y-4">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-serif text-2xl font-semibold text-foreground">Users</h1>

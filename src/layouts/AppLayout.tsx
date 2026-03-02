@@ -1,17 +1,13 @@
 import { useState } from 'react'
-import { NavLink, Outlet } from 'react-router'
+import { Link, NavLink, Outlet } from 'react-router'
 import {
   LayoutDashboard,
   Users,
-  Database,
   Leaf,
-  ChartBar,
-  Activity,
-  Bell,
   Cloud,
-  BarChart2,
+  Database,
+  Activity,
   FileText,
-  ClipboardList,
   Menu,
   PanelLeftClose,
   X,
@@ -64,15 +60,11 @@ interface NavItem {
 const navItems: NavItem[] = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard', end: true },
   { to: '/users', icon: Users, label: 'Users' },
-  { to: '/data-sources', icon: Database, label: 'Data Sources' },
-  { to: '/plants', icon: Leaf, label: 'Plant Browser' },
-  { to: '/plant-data', icon: ChartBar, label: 'Plant Data' },
-  { to: '/pipelines', icon: Activity, label: 'Jobs' },
-  { to: '/notifications', icon: Bell, label: 'Notifications' },
+  { to: '/plants', icon: Leaf, label: 'Plants' },
   { to: '/weather', icon: Cloud, label: 'Weather' },
-  { to: '/analytics', icon: BarChart2, label: 'Analytics' },
-  { to: '/logs', icon: FileText, label: 'API Logs' },
-  { to: '/audit', icon: ClipboardList, label: 'Audit' },
+  { to: '/data-sources', icon: Database, label: 'Data Sources' },
+  { to: '/activity', icon: Activity, label: 'Activity' },
+  { to: '/system-logs', icon: FileText, label: 'System Logs' },
 ]
 
 function getInitials(first_name: string, last_name: string | null): string {
@@ -118,10 +110,12 @@ export function AppLayout() {
       >
         {/* Wordmark */}
         <div className="flex h-14 shrink-0 items-center gap-2.5 border-b border-border px-5">
-          <img src="/icon.svg" alt="Mimus" className="h-6 w-6 rounded-sm" />
-          <span className="font-serif text-xl font-semibold tracking-tight text-foreground">
-            Mimus
-          </span>
+          <Link to="/" className="flex items-center gap-2.5">
+            <img src="/icon.svg" alt="Mimus" className="h-6 w-6 rounded-sm" />
+            <span className="font-serif text-xl font-semibold tracking-tight text-foreground">
+              Mimus
+            </span>
+          </Link>
           <button
             className="ml-auto rounded p-0.5 text-muted-foreground hover:text-foreground lg:hidden"
             onClick={() => setSidebarOpen(false)}
@@ -185,12 +179,12 @@ export function AppLayout() {
             {sidebarCollapsed ? <Menu className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
           </button>
 
-          <span className={cn(
+          <Link to="/" className={cn(
             'font-serif text-xl font-semibold tracking-tight text-foreground',
             !sidebarCollapsed && 'lg:hidden',
           )}>
             Mimus
-          </span>
+          </Link>
 
           <div className="flex-1" />
 

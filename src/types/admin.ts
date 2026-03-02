@@ -103,6 +103,7 @@ export interface WeatherRecord {
   precip_inches: number | null
   humidity_pct: number | null
   frost_warning: boolean
+  heat_warning: boolean
 }
 
 export interface WeatherAnalyticsResponse {
@@ -111,8 +112,11 @@ export interface WeatherAnalyticsResponse {
     avg_low_f: number | null
     total_precip_inches: number | null
     frost_days: number
+    heat_days: number
   }
   records: WeatherRecord[]
+  available_years: number[]
+  available_quarters: { label: string; quarter: number; quarter_year: number }[]
 }
 
 export interface GardenAnalytics {

@@ -4,15 +4,11 @@ import { UnauthorizedPage } from '@/pages/UnauthorizedPage'
 import { AppLayout } from '@/layouts/AppLayout'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { UsersPage } from '@/pages/UsersPage'
-import { DataSourcesPage } from '@/pages/DataSourcesPage'
-import { PipelinesPage } from '@/pages/PipelinesPage'
-import { NotificationsPage } from '@/pages/NotificationsPage'
+import { PlantsPage } from '@/pages/PlantsPage'
 import { WeatherPage } from '@/pages/WeatherPage'
-import { GardenAnalyticsPage } from '@/pages/GardenAnalyticsPage'
-import { ApiLogsPage } from '@/pages/ApiLogsPage'
-import { AuditPage } from '@/pages/AuditPage'
-import { PlantBrowserPage } from '@/pages/PlantBrowserPage'
-import { PlantDataPage } from '@/pages/PlantDataPage'
+import { DataSourcesPage } from '@/pages/DataSourcesPage'
+import { ActivityPage } from '@/pages/ActivityPage'
+import { SystemLogsPage } from '@/pages/SystemLogsPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { ErrorPage } from '@/pages/ErrorPage'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
@@ -44,40 +40,24 @@ export const router = createBrowserRouter([
         element: <UsersPage />,
       },
       {
-        path: 'data-sources',
-        element: <DataSourcesPage />,
-      },
-      {
         path: 'plants',
-        element: <PlantBrowserPage />,
-      },
-      {
-        path: 'plant-data',
-        element: <PlantDataPage />,
-      },
-      {
-        path: 'pipelines',
-        element: <PipelinesPage />,
-      },
-      {
-        path: 'notifications',
-        element: <NotificationsPage />,
+        element: <PlantsPage />,
       },
       {
         path: 'weather',
         element: <WeatherPage />,
       },
       {
-        path: 'analytics',
-        element: <GardenAnalyticsPage />,
+        path: 'data-sources',
+        element: <DataSourcesPage />,
       },
       {
-        path: 'logs',
-        element: <ApiLogsPage />,
+        path: 'activity',
+        element: <ActivityPage />,
       },
       {
-        path: 'audit',
-        element: <AuditPage />,
+        path: 'system-logs',
+        element: <SystemLogsPage />,
       },
       {
         path: '*',

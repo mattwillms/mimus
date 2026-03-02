@@ -87,7 +87,7 @@ export function ApiLogsPage() {
   const totalPages = data ? Math.ceil(data.total / PER_PAGE) : 1
 
   return (
-    <div className="mx-auto max-w-6xl space-y-4">
+    <div className="space-y-4">
       <div>
         <h1 className="font-serif text-2xl font-semibold text-foreground">API Logs</h1>
         <p className="mt-1 text-sm text-muted-foreground">

@@ -95,13 +95,17 @@ export function useNotificationLog(params: {
   })
 }
 
-export function useWeatherAnalytics(days: number) {
+export function useWeatherAnalytics(
+  params: { days: number } | { year: number } | { quarter: number; quarter_year: number },
+  options?: { enabled?: boolean },
+) {
   return useQuery({
-    queryKey: ['admin', 'weather', days],
+    queryKey: ['admin', 'weather', params],
     queryFn: () =>
       apiClient
-        .get<WeatherAnalyticsResponse>('/admin/analytics/weather', { params: { days } })
+        .get<WeatherAnalyticsResponse>('/admin/analytics/weather', { params })
         .then((r) => r.data),
+    enabled: options?.enabled,
   })
 }
 

@@ -68,7 +68,7 @@ export function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-5xl space-y-4">
+      <div className="space-y-4">
         <div>
           <h1 className="font-serif text-2xl font-semibold text-foreground">Dashboard</h1>
           <p className="mt-1 text-sm text-muted-foreground">Loading...</p>
@@ -79,7 +79,7 @@ export function DashboardPage() {
 
   if (isError || !health.data || !gardens.data || !fetchStatus.data || !coverage.data) {
     return (
-      <div className="mx-auto max-w-5xl space-y-4">
+      <div className="space-y-4">
         <div>
           <h1 className="font-serif text-2xl font-semibold text-foreground">Dashboard</h1>
           <p className="mt-1 text-sm text-destructive">Failed to load dashboard data.</p>
@@ -115,7 +115,7 @@ export function DashboardPage() {
   const enrichRun = fs.enrichment.latest_run
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="font-serif text-2xl font-semibold text-foreground">Dashboard</h1>
         <p className="mt-1 text-sm text-muted-foreground">System overview</p>
@@ -168,7 +168,7 @@ export function DashboardPage() {
             <Leaf className="h-4 w-4 text-muted-foreground" />
             <CardTitle className="text-sm font-medium">Plant Database</CardTitle>
           </div>
-          <Link to="/plant-data" className="text-xs text-muted-foreground hover:text-foreground">
+          <Link to="/plants" className="text-xs text-muted-foreground hover:text-foreground">
             View details &rarr;
           </Link>
         </CardHeader>
@@ -226,7 +226,7 @@ export function DashboardPage() {
               <Sparkles className="h-4 w-4 text-muted-foreground" />
               <CardTitle className="text-sm font-medium">Last Enrichment</CardTitle>
             </div>
-            <Link to="/plant-data" className="text-xs text-muted-foreground hover:text-foreground">
+            <Link to="/plants?tab=enrichment-rules" className="text-xs text-muted-foreground hover:text-foreground">
               View rules &rarr;
             </Link>
           </CardHeader>

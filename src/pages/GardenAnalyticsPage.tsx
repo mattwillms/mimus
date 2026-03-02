@@ -33,7 +33,7 @@ export function GardenAnalyticsPage() {
       : 1
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="font-serif text-2xl font-semibold text-foreground">Garden Analytics</h1>
         <p className="mt-1 text-sm text-muted-foreground">Aggregate stats across all users</p>
