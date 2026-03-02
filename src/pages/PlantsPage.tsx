@@ -7,7 +7,7 @@ import { EnrichmentRulesPage } from '@/pages/EnrichmentRulesPage'
 
 const TABS = [
   { key: 'browser', label: 'Browser' },
-  { key: 'plant-data', label: 'Plant Data' },
+  { key: 'plant-data', label: 'Data' },
   { key: 'garden-analytics', label: 'Garden Analytics' },
   { key: 'enrichment-rules', label: 'Enrichment Rules' },
 ] as const
