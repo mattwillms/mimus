@@ -147,6 +147,14 @@ export function ImageCachingTab() {
 
   return (
     <>
+      <div>
+        <h1 className="font-serif text-2xl font-semibold text-foreground">Image Caching</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {status.image_cache.plants_with_image != null
+            ? `${fmt(status.image_cache.plants_with_image)} plants with images`
+            : 'Plant image cache management'}
+        </p>
+      </div>
       <ImageCacheCard
         data={status.image_cache}
         onTrigger={handleTrigger}

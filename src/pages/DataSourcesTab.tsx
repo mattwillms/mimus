@@ -207,6 +207,14 @@ export function DataSourcesTab() {
 
   return (
     <>
+      <div>
+        <h1 className="font-serif text-2xl font-semibold text-foreground">Data Sources</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {status.plants_total != null
+            ? `${fmt(status.plants_total)} canonical species`
+            : 'Plant data pipeline status'}
+        </p>
+      </div>
       <div className="grid gap-4 md:grid-cols-2">
         <SourceCard
           name="permapeople"
