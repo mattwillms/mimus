@@ -367,3 +367,17 @@ export interface EnrichmentRuleUpdate {
   strategy?: string
   source_priority?: string[]
 }
+
+export interface CronJob {
+  id: number
+  name: string
+  enabled: boolean
+  hour: number | null
+  minute: number | null
+  interval_hours: number | null
+  updated_at: string
+}
+
+export interface CronJobsResponse {
+  items: CronJob[]
+}

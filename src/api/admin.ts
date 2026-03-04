@@ -9,6 +9,7 @@ import type {
   AdminUserUpdate,
   ApiRequestLogResponse,
   AuditLogResponse,
+  CronJobsResponse,
   EnrichmentRule,
   EnrichmentRuleUpdate,
   EnrichmentRulesResponse,
@@ -271,5 +272,39 @@ export function useTriggerEnrichment() {
         queryClient.invalidateQueries({ queryKey: ['admin', 'fetch', 'history'] })
       }, 2_000)
     },
+  })
+}
+
+
+// ── Cron Job Scheduling ──────────────────────────────────────────
+
+export function useCronJobs() {
+  return useQuery<CronJobsResponse>({
+    queryKey: ['admin', 'cron', 'jobs'],
+    queryFn: () =>
+      apiClient.get<CronJobsResponse>('/admin/cron/jobs').then((r) => r.data),
+  })
+}
+
+export function useUpdateCronJob() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (params: {
+      name: string
+      body: { enabled?: boolean; hour?: number | null; minute?: number | null; interval_hours?: number | null }
+    }) =>
+      apiClient
+        .patch(`/admin/cron/jobs/${params.name}`, params.body)
+        .then((r) => r.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'cron', 'jobs'] })
+    },
+  })
+}
+
+export function useRestartWorker() {
+  return useMutation({
+    mutationFn: () =>
+      apiClient.post('/admin/worker/restart').then((r) => r.data),
   })
 }

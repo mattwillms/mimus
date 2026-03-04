@@ -3,11 +3,13 @@ import { cn } from '@/lib/utils'
 import { DataSourcesTab } from '@/pages/DataSourcesTab'
 import { ImageCachingTab } from '@/pages/ImageCachingTab'
 import { EnrichmentEngineTab } from '@/pages/EnrichmentEngineTab'
+import { ScheduledJobsTab } from '@/pages/ScheduledJobsTab'
 
 const TABS = [
   { key: 'data-sources', label: 'Data Sources' },
   { key: 'image-caching', label: 'Image Caching' },
   { key: 'enrichment-engine', label: 'Enrichment Engine' },
+  { key: 'scheduled-jobs', label: 'Scheduled Jobs' },
 ] as const
 
 type TabKey = (typeof TABS)[number]['key']
@@ -49,6 +51,7 @@ export function DataSourcesPage() {
       {tab === 'data-sources' && <DataSourcesTab />}
       {tab === 'image-caching' && <ImageCachingTab />}
       {tab === 'enrichment-engine' && <EnrichmentEngineTab />}
+      {tab === 'scheduled-jobs' && <ScheduledJobsTab />}
     </div>
   )
 }
