@@ -44,9 +44,10 @@ const STATUS_LABELS: Record<string, string> = {
 
 export function statusBadge(status: string | undefined) {
   if (!status) return null
-  const label = STATUS_LABELS[status] ?? status
+  const normalized = status === 'complete' ? 'completed' : status
+  const label = STATUS_LABELS[normalized] ?? normalized
   return (
-    <Badge className={STATUS_COLORS[status] ?? 'bg-gray-100 text-gray-600'}>
+    <Badge className={STATUS_COLORS[normalized] ?? 'bg-gray-100 text-gray-600'}>
       {label}
     </Badge>
   )
@@ -150,14 +151,18 @@ function HistoryRow({ run }: { run: DataSourceRun }) {
   )
 }
 
+const FETCH_SOURCES = ['permapeople', 'perenual']
+
 export function HistoryTable({
   refetchInterval,
   sourceFilter: fixedSource,
   showSourceFilter = true,
+  restrictToFetchSources = false,
 }: {
   refetchInterval?: number
   sourceFilter?: string
   showSourceFilter?: boolean
+  restrictToFetchSources?: boolean
 }) {
   const [sourceFilter, setSourceFilter] = useState(fixedSource ?? 'all')
   const [page, setPage] = useState(1)
@@ -170,7 +175,13 @@ export function HistoryTable({
     per_page: 20,
   }
 
-  const { data, isLoading } = useFetchHistory(params, refetchInterval)
+  const { data: rawData, isLoading } = useFetchHistory(params, refetchInterval)
+
+  // When restricted to fetch sources and no specific filter is active,
+  // drop enrichment/image_cache rows client-side
+  const data = rawData && restrictToFetchSources && !activeSource
+    ? { ...rawData, items: rawData.items.filter((r) => r.source && FETCH_SOURCES.includes(r.source)) }
+    : rawData
   const totalPages = data ? Math.ceil(data.total / 20) : 1
 
   return (
@@ -192,8 +203,12 @@ export function HistoryTable({
               <SelectItem value="all">All sources</SelectItem>
               <SelectItem value="permapeople">Permapeople</SelectItem>
               <SelectItem value="perenual">Perenual</SelectItem>
-              <SelectItem value="enrichment">Enrichment</SelectItem>
-              <SelectItem value="image_cache">Image Cache</SelectItem>
+              {!restrictToFetchSources && (
+                <>
+                  <SelectItem value="enrichment">Enrichment</SelectItem>
+                  <SelectItem value="image_cache">Image Cache</SelectItem>
+                </>
+              )}
             </SelectContent>
           </Select>
         )}

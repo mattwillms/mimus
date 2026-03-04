@@ -236,6 +236,7 @@ export function DataSourcesTab() {
       <HistoryTable
         refetchInterval={anyRunning ? 5_000 : undefined}
         showSourceFilter={true}
+        restrictToFetchSources={true}
       />
     </>
   )
