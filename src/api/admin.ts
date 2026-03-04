@@ -241,6 +241,21 @@ export function useUpdateEnrichmentRule() {
   })
 }
 
+export function useTriggerImageCache() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => apiClient.post('/admin/fetch/image-cache').then((r) => r.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'fetch', 'status'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'fetch', 'history'] })
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['admin', 'fetch', 'status'] })
+        queryClient.invalidateQueries({ queryKey: ['admin', 'fetch', 'history'] })
+      }, 2_000)
+    },
+  })
+}
+
 // ── Triggers ─────────────────────────────────────────────────────
 
 export function useTriggerEnrichment() {

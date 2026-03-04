@@ -201,10 +201,17 @@ export interface EnrichmentStatus {
   is_running: boolean
 }
 
+export interface ImageCacheStatus {
+  latest_run: DataSourceRun | null
+  is_running: boolean
+  plants_with_image: number
+}
+
 export interface FetchStatusResponse {
   permapeople: DataSourceStatus
   perenual: DataSourceStatus
   enrichment: EnrichmentStatus
+  image_cache: ImageCacheStatus
   plants_total: number
 }
 

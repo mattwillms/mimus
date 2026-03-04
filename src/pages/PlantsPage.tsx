@@ -3,13 +3,11 @@ import { cn } from '@/lib/utils'
 import { PlantBrowserPage } from '@/pages/PlantBrowserPage'
 import { PlantDataPage } from '@/pages/PlantDataPage'
 import { GardenAnalyticsPage } from '@/pages/GardenAnalyticsPage'
-import { EnrichmentRulesPage } from '@/pages/EnrichmentRulesPage'
 
 const TABS = [
   { key: 'browser', label: 'Browser' },
   { key: 'plant-data', label: 'Data' },
   { key: 'garden-analytics', label: 'Garden Analytics' },
-  { key: 'enrichment-rules', label: 'Enrichment Rules' },
 ] as const
 
 type TabKey = (typeof TABS)[number]['key']
@@ -51,7 +49,6 @@ export function PlantsPage() {
       {tab === 'browser' && <PlantBrowserPage />}
       {tab === 'plant-data' && <PlantDataPage />}
       {tab === 'garden-analytics' && <GardenAnalyticsPage />}
-      {tab === 'enrichment-rules' && <EnrichmentRulesPage />}
     </div>
   )
 }

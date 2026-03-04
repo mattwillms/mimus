@@ -1,6 +1,14 @@
 import { useEffect, useState } from 'react'
-import { useFetchStatus, useFetchHistory, useTriggerFetch, useTriggerEnrichment } from '@/api/admin'
-import type { DataSourceStatus, DataSourceRun, EnrichmentStatus } from '@/types/admin'
+import {
+  useFetchStatus,
+  useFetchHistory,
+  useTriggerFetch,
+  useTriggerEnrichment,
+  useTriggerImageCache,
+  useEnrichmentRules,
+  useUpdateEnrichmentRule,
+} from '@/api/admin'
+import type { DataSourceStatus, DataSourceRun, EnrichmentStatus, ImageCacheStatus } from '@/types/admin'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -357,14 +365,135 @@ function EnrichmentCard({
   )
 }
 
+// ── Image Cache Card ─────────────────────────────────────────────
+
+function ImageCacheCard({
+  data,
+  onTrigger,
+  triggerPending,
+  justTriggered,
+}: {
+  data: ImageCacheStatus
+  onTrigger: () => void
+  triggerPending: boolean
+  justTriggered: boolean
+}) {
+  const [errorOpen, setErrorOpen] = useState(false)
+  const run = data.latest_run
+  const hasErrors = (run?.errors ?? 0) > 0
+  const hasErrorDetail = !!run?.error_detail
+  const showRunning = data.is_running || justTriggered
+  const buttonDisabled = showRunning || triggerPending
+
+  // new_species = cached this run, skipped = already cached
+  const totalCached = (run?.skipped ?? 0) + (run?.new_species ?? 0)
+  const totalMissing = data.plants_with_image - totalCached
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-base font-medium">Image Cache</CardTitle>
+        {showRunning ? (
+          <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
+            <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+            Running
+          </Badge>
+        ) : (
+          statusBadge(run?.status)
+        )}
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-4 text-sm">
+          <div>
+            <p className="text-muted-foreground">Plants w/ image</p>
+            <p className="text-lg font-semibold">{fmt(data.plants_with_image)}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Cached</p>
+            <p className="text-lg font-semibold">{run ? fmt(totalCached) : '—'}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Missing</p>
+            <p className="text-lg font-semibold">{run ? fmt(totalMissing > 0 ? totalMissing : 0) : '—'}</p>
+          </div>
+        </div>
+
+        {/* Last run summary */}
+        {run && (
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+            <span>Newly cached: {fmt(run.new_species)}</span>
+            <span>Already cached: {fmt(run.skipped)}</span>
+            {hasErrors ? (
+              <button
+                className="inline-flex items-center gap-0.5 text-destructive hover:underline"
+                onClick={() => hasErrorDetail && setErrorOpen(!errorOpen)}
+              >
+                {fmt(run.errors)} errors
+                {hasErrorDetail &&
+                  (errorOpen ? (
+                    <ChevronDown className="h-3 w-3" />
+                  ) : (
+                    <ChevronRight className="h-3 w-3" />
+                  ))}
+              </button>
+            ) : (
+              <span>Errors: {fmt(run.errors)}</span>
+            )}
+            <span>Last run: {timeAgo(run.started_at)}</span>
+          </div>
+        )}
+
+        {/* Error detail (expandable) */}
+        {errorOpen && run?.error_detail && (
+          <pre className="max-h-40 overflow-auto rounded bg-muted p-2 text-xs text-destructive">
+            {run.error_detail}
+          </pre>
+        )}
+
+        {/* Trigger */}
+        <Button
+          size="sm"
+          disabled={buttonDisabled}
+          onClick={onTrigger}
+        >
+          {triggerPending ? (
+            <>
+              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+              Queued...
+            </>
+          ) : showRunning ? (
+            <>
+              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+              Running...
+            </>
+          ) : (
+            'Run Image Cache'
+          )}
+        </Button>
+      </CardContent>
+    </Card>
+  )
+}
+
 // ── History Table ────────────────────────────────────────────────
 
-function HistoryTable({ refetchInterval }: { refetchInterval?: number }) {
-  const [sourceFilter, setSourceFilter] = useState('all')
+function HistoryTable({
+  refetchInterval,
+  sourceFilter: fixedSource,
+  showSourceFilter = true,
+}: {
+  refetchInterval?: number
+  sourceFilter?: string
+  showSourceFilter?: boolean
+}) {
+  const [sourceFilter, setSourceFilter] = useState(fixedSource ?? 'all')
   const [page, setPage] = useState(1)
 
+  const activeSource = fixedSource ?? (sourceFilter !== 'all' ? sourceFilter : undefined)
+
   const params = {
-    ...(sourceFilter !== 'all' ? { source: sourceFilter } : {}),
+    ...(activeSource ? { source: activeSource } : {}),
     page,
     per_page: 20,
   }
@@ -376,23 +505,24 @@ function HistoryTable({ refetchInterval }: { refetchInterval?: number }) {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h2 className="font-serif text-lg font-semibold text-foreground">Run History</h2>
-        <Select
-          value={sourceFilter}
-          onValueChange={(v) => {
-            setSourceFilter(v)
-            setPage(1)
-          }}
-        >
-          <SelectTrigger className="w-44">
-            <SelectValue placeholder="All sources" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All sources</SelectItem>
-            <SelectItem value="permapeople">Permapeople</SelectItem>
-            <SelectItem value="perenual">Perenual</SelectItem>
-            <SelectItem value="enrichment">Enrichment</SelectItem>
-          </SelectContent>
-        </Select>
+        {showSourceFilter && !fixedSource && (
+          <Select
+            value={sourceFilter}
+            onValueChange={(v) => {
+              setSourceFilter(v)
+              setPage(1)
+            }}
+          >
+            <SelectTrigger className="w-44">
+              <SelectValue placeholder="All sources" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All sources</SelectItem>
+              <SelectItem value="permapeople">Permapeople</SelectItem>
+              <SelectItem value="perenual">Perenual</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       {isLoading && <p className="text-sm text-muted-foreground">Loading...</p>}
@@ -465,10 +595,11 @@ function HistoryRow({ run }: { run: DataSourceRun }) {
   const [errorOpen, setErrorOpen] = useState(false)
   const isPerenual = run.source === 'perenual'
   const isEnrichment = run.source === 'enrichment'
+  const isImageCache = run.source === 'image_cache'
 
   const newCol = isPerenual ? run.records_synced : run.new_species
   const updatedCol = isPerenual ? null : run.updated
-  const gapCol = isPerenual || isEnrichment ? null : run.gap_filled
+  const gapCol = isPerenual || isEnrichment || isImageCache ? null : run.gap_filled
   const hasErrors = (run.errors ?? 0) > 0
   const hasErrorDetail = !!run.error_detail
 
@@ -476,7 +607,7 @@ function HistoryRow({ run }: { run: DataSourceRun }) {
     <>
       <TableRow>
         <TableCell className="font-mono text-xs font-medium capitalize">
-          {run.source}
+          {run.source === 'image_cache' ? 'image cache' : run.source}
         </TableCell>
         <TableCell>{statusBadge(run.status)}</TableCell>
         <TableCell className="text-muted-foreground">{timeAgo(run.started_at)}</TableCell>
@@ -530,13 +661,97 @@ function HistoryRow({ run }: { run: DataSourceRun }) {
   )
 }
 
+// ── Enrichment Rules Table ───────────────────────────────────────
+
+function EnrichmentRulesTable() {
+  const { data: rulesData, isLoading } = useEnrichmentRules()
+  const updateRule = useUpdateEnrichmentRule()
+
+  if (isLoading) return <p className="text-sm text-muted-foreground">Loading rules...</p>
+  if (!rulesData) return null
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h2 className="font-serif text-lg font-semibold text-foreground">Enrichment Rules</h2>
+        <p className="text-sm text-muted-foreground">{rulesData.items.length} rules configured</p>
+      </div>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[220px]">Field</TableHead>
+              <TableHead className="w-[160px]">Strategy</TableHead>
+              <TableHead>Source Priority</TableHead>
+              <TableHead className="w-[120px]">Last Updated</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rulesData.items.map((rule) => (
+              <TableRow key={rule.id}>
+                <TableCell className="font-mono text-xs">{rule.field_name}</TableCell>
+                <TableCell>
+                  <Select
+                    value={rule.strategy}
+                    onValueChange={(v) =>
+                      updateRule.mutate({ field_name: rule.field_name, data: { strategy: v } })
+                    }
+                  >
+                    <SelectTrigger className="h-8 w-[140px] text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="priority">priority</SelectItem>
+                      <SelectItem value="union">union</SelectItem>
+                      <SelectItem value="longest">longest</SelectItem>
+                      <SelectItem value="average">average</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </TableCell>
+                <TableCell>
+                  {rule.source_priority ? (
+                    <div className="flex flex-wrap gap-1">
+                      {rule.source_priority.map((src) => (
+                        <Badge key={src} variant="outline" className="px-1.5 py-0 text-[10px]">
+                          {src}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">—</span>
+                  )}
+                </TableCell>
+                <TableCell className="text-xs text-muted-foreground">
+                  {timeAgo(rule.updated_at)}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  )
+}
+
+// ── Tab definitions ──────────────────────────────────────────────
+
+const TABS = [
+  { key: 'data-sources', label: 'Data Sources' },
+  { key: 'image-caching', label: 'Image Caching' },
+  { key: 'enrichment', label: 'Enrichment Engine' },
+] as const
+
+type TabKey = (typeof TABS)[number]['key']
+
 // ── Page ─────────────────────────────────────────────────────────
 
 export function DataSourcesPage() {
+  const [tab, setTab] = useState<TabKey>('data-sources')
   const [pollInterval, setPollInterval] = useState(10_000)
   const { data: status, isLoading, isError } = useFetchStatus(pollInterval)
   const trigger = useTriggerFetch()
   const enrichTrigger = useTriggerEnrichment()
+  const imageCacheTrigger = useTriggerImageCache()
   const [justTriggered, setJustTriggered] = useState<Record<string, boolean>>({})
 
   // Clear justTriggered when poll confirms running
@@ -547,12 +762,16 @@ export function DataSourcesPage() {
       setJustTriggered((prev) => ({ ...prev, perenual: false }))
     if (status?.enrichment.is_running && justTriggered.enrichment)
       setJustTriggered((prev) => ({ ...prev, enrichment: false }))
+    if (status?.image_cache.is_running && justTriggered.image_cache)
+      setJustTriggered((prev) => ({ ...prev, image_cache: false }))
   }, [status]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Dynamic polling: 5s when running, 10s when idle
   const anyRunning =
-    status?.permapeople.is_running || status?.perenual.is_running || status?.enrichment.is_running ||
-    justTriggered.permapeople || justTriggered.perenual || justTriggered.enrichment
+    status?.permapeople.is_running || status?.perenual.is_running ||
+    status?.enrichment.is_running || status?.image_cache.is_running ||
+    justTriggered.permapeople || justTriggered.perenual ||
+    justTriggered.enrichment || justTriggered.image_cache
   if (anyRunning && pollInterval !== 5_000) setPollInterval(5_000)
   if (!anyRunning && pollInterval !== 10_000) setPollInterval(10_000)
 
@@ -572,6 +791,14 @@ export function DataSourcesPage() {
     }, 5_000)
   }
 
+  const handleImageCacheTrigger = () => {
+    imageCacheTrigger.mutate()
+    setJustTriggered((prev) => ({ ...prev, image_cache: true }))
+    setTimeout(() => {
+      setJustTriggered((prev) => ({ ...prev, image_cache: false }))
+    }, 5_000)
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -583,42 +810,91 @@ export function DataSourcesPage() {
         </p>
       </div>
 
+      {/* Tabs */}
+      <div className="flex gap-6 border-b border-border">
+        {TABS.map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={cn(
+              'pb-2 text-sm font-medium transition-colors border-b-2 -mb-px',
+              tab === t.key
+                ? 'border-primary text-foreground'
+                : 'border-transparent text-muted-foreground hover:text-foreground',
+            )}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
       {isLoading && <p className="text-sm text-muted-foreground">Loading...</p>}
       {isError && (
         <p className="text-sm text-destructive">Failed to load data source status.</p>
       )}
 
-      {status && (
-        <div className="grid gap-4 md:grid-cols-2">
-          <SourceCard
-            name="permapeople"
-            label="Permapeople"
-            data={status.permapeople}
-            onTrigger={(ff) => handleTrigger('permapeople', ff)}
-            triggerPending={trigger.isPending}
-            justTriggered={!!justTriggered.permapeople}
+      {/* Tab 1: Data Sources */}
+      {tab === 'data-sources' && status && (
+        <>
+          <div className="grid gap-4 md:grid-cols-2">
+            <SourceCard
+              name="permapeople"
+              label="Permapeople"
+              data={status.permapeople}
+              onTrigger={(ff) => handleTrigger('permapeople', ff)}
+              triggerPending={trigger.isPending}
+              justTriggered={!!justTriggered.permapeople}
+            />
+            <SourceCard
+              name="perenual"
+              label="Perenual"
+              data={status.perenual}
+              onTrigger={() => handleTrigger('perenual', false)}
+              triggerPending={trigger.isPending}
+              justTriggered={!!justTriggered.perenual}
+            />
+          </div>
+          <HistoryTable
+            refetchInterval={anyRunning ? 5_000 : undefined}
+            showSourceFilter={true}
           />
-          <SourceCard
-            name="perenual"
-            label="Perenual"
-            data={status.perenual}
-            onTrigger={() => handleTrigger('perenual', false)}
-            triggerPending={trigger.isPending}
-            justTriggered={!!justTriggered.perenual}
-          />
-        </div>
+        </>
       )}
 
-      {status && (
-        <EnrichmentCard
-          data={status.enrichment}
-          onTrigger={handleEnrichTrigger}
-          triggerPending={enrichTrigger.isPending}
-          justTriggered={!!justTriggered.enrichment}
-        />
+      {/* Tab 2: Image Caching */}
+      {tab === 'image-caching' && status && (
+        <>
+          <ImageCacheCard
+            data={status.image_cache}
+            onTrigger={handleImageCacheTrigger}
+            triggerPending={imageCacheTrigger.isPending}
+            justTriggered={!!justTriggered.image_cache}
+          />
+          <HistoryTable
+            refetchInterval={anyRunning ? 5_000 : undefined}
+            sourceFilter="image_cache"
+            showSourceFilter={false}
+          />
+        </>
       )}
 
-      <HistoryTable refetchInterval={anyRunning ? 5_000 : undefined} />
+      {/* Tab 3: Enrichment Engine */}
+      {tab === 'enrichment' && status && (
+        <>
+          <EnrichmentCard
+            data={status.enrichment}
+            onTrigger={handleEnrichTrigger}
+            triggerPending={enrichTrigger.isPending}
+            justTriggered={!!justTriggered.enrichment}
+          />
+          <HistoryTable
+            refetchInterval={anyRunning ? 5_000 : undefined}
+            sourceFilter="enrichment"
+            showSourceFilter={false}
+          />
+          <EnrichmentRulesTable />
+        </>
+      )}
     </div>
   )
 }
