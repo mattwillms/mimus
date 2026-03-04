@@ -151,8 +151,6 @@ function HistoryRow({ run }: { run: DataSourceRun }) {
   )
 }
 
-const FETCH_SOURCES = ['permapeople', 'perenual']
-
 export function HistoryTable({
   refetchInterval,
   sourceFilter: fixedSource,
@@ -171,17 +169,12 @@ export function HistoryTable({
 
   const params = {
     ...(activeSource ? { source: activeSource } : {}),
+    ...(restrictToFetchSources && !activeSource ? { exclude_sources: 'enrichment,image_cache' } : {}),
     page,
     per_page: 20,
   }
 
-  const { data: rawData, isLoading } = useFetchHistory(params, refetchInterval)
-
-  // When restricted to fetch sources and no specific filter is active,
-  // drop enrichment/image_cache rows client-side
-  const data = rawData && restrictToFetchSources && !activeSource
-    ? { ...rawData, items: rawData.items.filter((r) => r.source && FETCH_SOURCES.includes(r.source)) }
-    : rawData
+  const { data, isLoading } = useFetchHistory(params, refetchInterval)
   const totalPages = data ? Math.ceil(data.total / 20) : 1
 
   return (

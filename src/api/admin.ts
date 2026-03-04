@@ -153,6 +153,7 @@ export function useFetchStatus(refetchInterval = 10_000) {
 export function useFetchHistory(
   params: {
     source?: string
+    exclude_sources?: string
     page?: number
     per_page?: number
   },
