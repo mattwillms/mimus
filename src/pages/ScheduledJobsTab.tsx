@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { useCronJobs, useUpdateCronJob, useRestartWorker } from '@/api/admin'
 import type { CronJob } from '@/types/admin'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import {
   Table,
@@ -12,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Loader2, RotateCw, Check, AlertTriangle } from 'lucide-react'
+import { Loader2, RotateCw, Check, AlertTriangle, Minus, Plus } from 'lucide-react'
 
 const JOB_LABELS: Record<string, string> = {
   cache_images: 'Image Cache',
@@ -27,6 +26,67 @@ const JOB_LABELS: Record<string, string> = {
 }
 
 type LocalEdits = Record<string, Partial<Pick<CronJob, 'enabled' | 'hour' | 'minute' | 'interval_hours'>>>
+
+function Stepper({
+  value,
+  min,
+  max,
+  pad,
+  onChange,
+}: {
+  value: number
+  min: number
+  max: number
+  pad?: number
+  onChange: (v: number) => void
+}) {
+  const display = pad ? String(value).padStart(pad, '0') : String(value)
+  return (
+    <div className="inline-flex items-center rounded-md border border-border">
+      <button
+        className="flex h-8 w-7 items-center justify-center text-muted-foreground hover:bg-muted rounded-l-md"
+        onClick={() => onChange(value <= min ? max : value - 1)}
+      >
+        <Minus className="h-3 w-3" />
+      </button>
+      <span className="flex h-8 w-8 items-center justify-center text-sm font-medium tabular-nums">
+        {display}
+      </span>
+      <button
+        className="flex h-8 w-7 items-center justify-center text-muted-foreground hover:bg-muted rounded-r-md"
+        onClick={() => onChange(value >= max ? min : value + 1)}
+      >
+        <Plus className="h-3 w-3" />
+      </button>
+    </div>
+  )
+}
+
+const MINUTE_STEPS = [0, 15, 30, 45]
+
+function MinuteStepper({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const idx = MINUTE_STEPS.indexOf(value)
+  const current = idx >= 0 ? idx : 0
+  return (
+    <div className="inline-flex items-center rounded-md border border-border">
+      <button
+        className="flex h-8 w-7 items-center justify-center text-muted-foreground hover:bg-muted rounded-l-md"
+        onClick={() => onChange(MINUTE_STEPS[(current - 1 + MINUTE_STEPS.length) % MINUTE_STEPS.length])}
+      >
+        <Minus className="h-3 w-3" />
+      </button>
+      <span className="flex h-8 w-8 items-center justify-center text-sm font-medium tabular-nums">
+        {String(MINUTE_STEPS[current]).padStart(2, '0')}
+      </span>
+      <button
+        className="flex h-8 w-7 items-center justify-center text-muted-foreground hover:bg-muted rounded-r-md"
+        onClick={() => onChange(MINUTE_STEPS[(current + 1) % MINUTE_STEPS.length])}
+      >
+        <Plus className="h-3 w-3" />
+      </button>
+    </div>
+  )
+}
 
 function nextRunCentral(job: CronJob & Partial<Pick<CronJob, 'enabled' | 'hour' | 'minute' | 'interval_hours'>>): string {
   if (!job.enabled) return '—'
@@ -99,42 +159,31 @@ function JobRow({
         {isInterval ? (
           <div className="flex items-center gap-1.5 text-sm">
             <span className="text-muted-foreground">Every</span>
-            <Input
-              type="number"
+            <Stepper
+              value={current.interval_hours ?? 1}
               min={1}
               max={12}
-              className="h-8 w-16 text-center"
-              value={current.interval_hours ?? ''}
-              onChange={(e) => onEdit('interval_hours', e.target.value ? Number(e.target.value) : null)}
+              onChange={(v) => onEdit('interval_hours', v)}
             />
             <span className="text-muted-foreground">h at :</span>
-            <Input
-              type="number"
-              min={0}
-              max={59}
-              className="h-8 w-16 text-center"
+            <MinuteStepper
               value={current.minute ?? 0}
-              onChange={(e) => onEdit('minute', Number(e.target.value))}
+              onChange={(v) => onEdit('minute', v)}
             />
           </div>
         ) : (
           <div className="flex items-center gap-1.5 text-sm">
-            <Input
-              type="number"
+            <Stepper
+              value={current.hour ?? 0}
               min={0}
               max={23}
-              className="h-8 w-16 text-center"
-              value={current.hour ?? ''}
-              onChange={(e) => onEdit('hour', e.target.value ? Number(e.target.value) : null)}
+              pad={2}
+              onChange={(v) => onEdit('hour', v)}
             />
             <span className="text-muted-foreground">:</span>
-            <Input
-              type="number"
-              min={0}
-              max={59}
-              className="h-8 w-16 text-center"
+            <MinuteStepper
               value={current.minute ?? 0}
-              onChange={(e) => onEdit('minute', Number(e.target.value))}
+              onChange={(v) => onEdit('minute', v)}
             />
             <span className="text-muted-foreground">UTC</span>
           </div>
