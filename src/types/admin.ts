@@ -205,6 +205,7 @@ export interface ImageCacheStatus {
   latest_run: DataSourceRun | null
   is_running: boolean
   plants_with_image: number
+  cached_on_disk: number
 }
 
 export interface FetchStatusResponse {

@@ -27,9 +27,8 @@ function ImageCacheCard({
   const showRunning = data.is_running || justTriggered
   const buttonDisabled = showRunning || triggerPending
 
-  // new_species = cached this run, skipped = already cached
-  const totalCached = (run?.skipped ?? 0) + (run?.new_species ?? 0)
-  const totalMissing = data.plants_with_image - totalCached
+  const totalCached = data.cached_on_disk
+  const totalMissing = Math.max(0, data.plants_with_image - totalCached)
 
   return (
     <Card>
@@ -53,11 +52,11 @@ function ImageCacheCard({
           </div>
           <div>
             <p className="text-muted-foreground">Cached</p>
-            <p className="text-lg font-semibold">{run ? fmt(totalCached) : '—'}</p>
+            <p className="text-lg font-semibold">{fmt(totalCached)}</p>
           </div>
           <div>
             <p className="text-muted-foreground">Missing</p>
-            <p className="text-lg font-semibold">{run ? fmt(totalMissing > 0 ? totalMissing : 0) : '—'}</p>
+            <p className="text-lg font-semibold">{fmt(totalMissing)}</p>
           </div>
         </div>
 
@@ -151,7 +150,7 @@ export function ImageCachingTab() {
         <h1 className="font-serif text-2xl font-semibold text-foreground">Image Caching</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {status.image_cache.plants_with_image != null
-            ? `${fmt(status.image_cache.plants_with_image)} plants with images`
+            ? `${fmt(status.image_cache.plants_with_image)} plants with images · ${fmt(status.image_cache.cached_on_disk)} cached on disk`
             : 'Plant image cache management'}
         </p>
       </div>
