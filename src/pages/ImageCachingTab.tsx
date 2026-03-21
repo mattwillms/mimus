@@ -162,55 +162,51 @@ export function ImageCachingTab() {
         triggerPending={trigger.isPending}
         justTriggered={justTriggered}
       />
-      {failedData && failedData.total > 0 && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium">
-              Permanently Failed ({fmt(failedData.total)})
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-xs text-muted-foreground">
-              These plants have image URLs that consistently fail to download. Their source data is
-              preserved — if a future enrichment source provides a working image URL, these plants
-              will automatically re-enter the cache queue.
-            </p>
-            <div className="rounded border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-20">Plant ID</TableHead>
-                    <TableHead>Common Name</TableHead>
-                    <TableHead>Scientific Name</TableHead>
-                    <TableHead>Source URL</TableHead>
-                    <TableHead>Reason</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {failedData.items.map((p) => (
-                    <TableRow key={p.id}>
-                      <TableCell className="font-mono text-xs">{p.id}</TableCell>
-                      <TableCell className="text-sm">{p.common_name}</TableCell>
-                      <TableCell className="text-sm italic">{p.scientific_name ?? '—'}</TableCell>
-                      <TableCell className="max-w-[200px] truncate text-xs text-muted-foreground" title={p.image_url ?? undefined}>
-                        {p.image_url ?? '—'}
-                      </TableCell>
-                      <TableCell className="max-w-[250px] text-xs text-muted-foreground">
-                        {p.image_cache_failed_reason ?? '—'}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
-      )}
       <HistoryTable
         refetchInterval={isRunning ? 5_000 : undefined}
         sourceFilter="image_cache"
         showSourceFilter={false}
       />
+      {failedData && failedData.total > 0 && (
+        <div className="space-y-3">
+          <h2 className="font-serif text-lg font-semibold text-foreground">
+            Permanently Failed ({fmt(failedData.total)})
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            These plants have image URLs that consistently fail to download. Their source data is
+            preserved — if a future enrichment source provides a working image URL, these plants
+            will automatically re-enter the cache queue.
+          </p>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Plant ID</TableHead>
+                  <TableHead>Common Name</TableHead>
+                  <TableHead>Scientific Name</TableHead>
+                  <TableHead>Source URL</TableHead>
+                  <TableHead>Reason</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {failedData.items.map((p) => (
+                  <TableRow key={p.id}>
+                    <TableCell>{p.id}</TableCell>
+                    <TableCell>{p.common_name}</TableCell>
+                    <TableCell>{p.scientific_name ?? '—'}</TableCell>
+                    <TableCell className="max-w-[200px] truncate text-muted-foreground" title={p.image_url ?? undefined}>
+                      {p.image_url ?? '—'}
+                    </TableCell>
+                    <TableCell className="max-w-[250px] text-muted-foreground">
+                      {p.image_cache_failed_reason ?? '—'}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      )}
     </>
   )
 }
