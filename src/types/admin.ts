@@ -208,6 +208,19 @@ export interface ImageCacheStatus {
   cached_on_disk: number
 }
 
+export interface ImageCacheFailedPlant {
+  id: number
+  common_name: string
+  scientific_name: string | null
+  image_url: string | null
+  image_cache_failed_reason: string | null
+}
+
+export interface ImageCacheFailedResponse {
+  items: ImageCacheFailedPlant[]
+  total: number
+}
+
 export interface FetchStatusResponse {
   permapeople: DataSourceStatus
   perenual: DataSourceStatus

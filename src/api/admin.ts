@@ -16,6 +16,7 @@ import type {
   FetchHistoryResponse,
   FetchStatusResponse,
   GardenAnalytics,
+  ImageCacheFailedResponse,
   HealthStatus,
   NotificationLogResponse,
   PipelineRunListResponse,
@@ -255,6 +256,14 @@ export function useTriggerImageCache() {
         queryClient.invalidateQueries({ queryKey: ['admin', 'fetch', 'history'] })
       }, 2_000)
     },
+  })
+}
+
+export function useImageCacheFailed() {
+  return useQuery<ImageCacheFailedResponse>({
+    queryKey: ['admin', 'image-cache', 'failed'],
+    queryFn: () =>
+      apiClient.get('/admin/image-cache/failed', { params: { per_page: 200 } }).then((r) => r.data),
   })
 }
 
